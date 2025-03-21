@@ -1,34 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { GameBoard } from './components/GameBoard'
+import { useGame } from './hooks/useGame'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { gameState, submitGuess, startNewGame, getHint } = useGame()
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Top 100 Guessing Game</h1>
+        {/* TODO: Add game instructions */}
+        {/* TODO: Add settings menu */}
+      </header>
+
+      <main className="game-container">
+        <GameBoard
+          category={gameState.category}
+          currentScore={gameState.currentScore}
+          maxAttempts={10}
+        />
+        {/* TODO: Add leaderboard component */}
+        {/* TODO: Add game statistics */}
+      </main>
+
+      <footer className="app-footer">
+        {/* TODO: Add game controls */}
+        {/* TODO: Add social sharing */}
+      </footer>
+    </div>
   )
 }
 
