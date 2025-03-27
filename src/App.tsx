@@ -11,8 +11,7 @@ function App() {
       {currentPage === 'landing' ? (
         <LandingPage onStartGame={() => setCurrentPage('game')} />
       ) : (
-        // <GamePage onReturnHome={() => setCurrentPage('landing')} />
-        <div/>
+        <GamePage onReturnHome={() => setCurrentPage('landing')} />
       )}
     </div>
   )
