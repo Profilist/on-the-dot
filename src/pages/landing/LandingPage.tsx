@@ -46,10 +46,15 @@ export function LandingPage({ onStartGame }: LandingPageProps) {
             onClick={onStartGame}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-24 py-6 text-3xl border-2 border-black rounded-full
-                     hover:bg-gray-50 transition-colors duration-300"
+            className="relative px-24 py-6 text-3xl border-2 border-black rounded-full
+                       overflow-hidden transition-all duration-300
+                       hover:text-white hover:border-[#f11d2b] group"
           >
-            Play
+            <span className="relative z-10">Play</span>
+            <div className="absolute inset-0 bg-[#f11d2b] transform scale-x-0 
+                            group-hover:scale-x-100 transition-transform duration-300 
+                            origin-left" 
+            />
           </motion.button>
         </FadeIn>
       </div>
