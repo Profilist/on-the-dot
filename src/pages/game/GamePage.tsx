@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+// import { motion } from 'framer-motion'
 import { useState, useCallback, useEffect } from 'react'
 import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
@@ -20,8 +20,8 @@ function calculateScore(guesses: Guess[]): number {
   }, 0)
 }
 
-export function GamePage({ onReturnHome }: GamePageProps) {
-  const { checkRank, getRandomCategory, isLoading, error } = useSupabase()
+export function GamePage({ }: GamePageProps) {
+  const { checkRank, getRandomCategory } = useSupabase()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
