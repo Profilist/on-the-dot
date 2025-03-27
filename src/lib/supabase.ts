@@ -28,13 +28,3 @@ export const supabase = createClient<Database>(
 export function isSupabaseError(error: unknown): error is { message: string; details: string; hint: string; code: string } {
   return typeof error === 'object' && error !== null && 'message' in error && 'code' in error
 }
-
-export type Tables = {
-  movies: {
-    id: number
-    title: string
-    rank: number
-    category: string
-    created_at: string
-  }
-} 

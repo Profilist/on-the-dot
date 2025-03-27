@@ -9,7 +9,7 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      movies: {
+      rankings: {
         Row: {
           id: number
           title: string
@@ -21,7 +21,7 @@ export interface Database {
           id?: number
           title: string
           rank: number
-          category?: string
+          category: string
           created_at?: string
         }
         Update: {
@@ -32,6 +32,15 @@ export interface Database {
           created_at?: string
         }
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 } 

@@ -1,6 +1,6 @@
 export interface Guess {
-  movie: string
-  rank?: number  // Optional since not all guesses will be in top 100
+  item: string      // Changed from 'movie' to be category-agnostic
+  rank?: number     // Optional since not all guesses will be in top 100
   isInTop100: boolean
 }
 

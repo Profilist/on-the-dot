@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
 import { supabase, isSupabaseError } from '../lib/supabase'
-import type { Tables } from '../lib/supabase'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
+const AVAILABLE_CATEGORIES = ['movies'] as const // Add more categories as they become available
 
 export function useSupabase() {
   const [isLoading, setIsLoading] = useState(false)
@@ -11,7 +11,7 @@ export function useSupabase() {
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-  const checkMovieRank = useCallback(async (movieTitle: string, retryCount = 0): Promise<number | null> => {
+  const checkRank = useCallback(async (title: string, category: string, retryCount = 0): Promise<number | null> => {
     setIsLoading(true)
     setError(null)
     
@@ -19,23 +19,21 @@ export function useSupabase() {
       const { data, error } = await supabase
         .from('movies')
         .select('rank')
-        .ilike('title', `%${movieTitle}%`) // More flexible matching
-        .limit(1) // Optimize query
-        .maybeSingle() // Better than .single() for our use case
+        .ilike('title', `%${title}%`)
+        // .eq('category', category.toLowerCase())
+        .limit(1)
+        .maybeSingle()
 
-      // Handle Supabase errors
       if (error) {
-        // If it's an API key error and we haven't exceeded retries, try again
         if (error.message.includes('API key') && retryCount < MAX_RETRIES) {
           await sleep(RETRY_DELAY)
-          return checkMovieRank(movieTitle, retryCount + 1)
+          return checkRank(title, category, retryCount + 1)
         }
         throw error
       }
 
       return data?.rank ?? null
     } catch (err) {
-      // Type-safe error handling
       if (isSupabaseError(err)) {
         setError(`Database error: ${err.message}`)
         console.error('Supabase error:', { 
@@ -53,8 +51,14 @@ export function useSupabase() {
     }
   }, [])
 
+  const getRandomCategory = useCallback((): string => {
+    // For now, just return 'movies' since that's our only category
+    return AVAILABLE_CATEGORIES[0]
+  }, [])
+
   return {
-    checkMovieRank,
+    checkRank,
+    getRandomCategory,
     isLoading,
     error
   }

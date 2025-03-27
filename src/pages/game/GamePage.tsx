@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
@@ -11,21 +11,36 @@ interface GamePageProps {
   onReturnHome: () => void
 }
 
+function calculateScore(guesses: Guess[]): number {
+  return guesses.reduce((total, guess) => {
+    if (!guess.rank) return total
+    // Award points based on how close the guess is to being in top 100
+    const pointValue = guess.isInTop100 ? guess.rank : 0
+    return total + pointValue
+  }, 0)
+}
+
 export function GamePage({ onReturnHome }: GamePageProps) {
-  const { checkMovieRank, isLoading, error } = useSupabase()
+  const { checkRank, getRandomCategory, isLoading, error } = useSupabase()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
     isGameOver: false,
-    currentCategory: 'Movies'
+    currentCategory: 'movies'
   })
 
-  const handleGuess = useCallback(async (movieGuess: string) => {
+  // Initialize game with random category
+  useEffect(() => {
+    const category = getRandomCategory()
+    setGameState(prev => ({ ...prev, currentCategory: category }))
+  }, [getRandomCategory])
+
+  const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    const rank = await checkMovieRank(movieGuess)
+    const rank = await checkRank(guess, gameState.currentCategory)
     const newGuess: Guess = {
-      movie: movieGuess,
+      item: guess, 
       rank: rank || undefined,
       isInTop100: rank !== null
     }
@@ -42,22 +57,22 @@ export function GamePage({ onReturnHome }: GamePageProps) {
         isGameOver
       }
     })
-  }, [gameState.remainingGuesses, gameState.isGameOver, checkMovieRank])
+  }, [gameState.remainingGuesses, gameState.isGameOver, checkRank, gameState.currentCategory])
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
-      {/* Logo */}
-      <div className="w-[200px] mt-8 mb-12">
-        <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
-      </div>
-
-      {/* Category Title */}
-      <h1 className="text-4xl font-mono uppercase tracking-wider mb-12">
-        Top 100 {gameState.currentCategory}
-      </h1>
-
-      {/* Input Section */}
       <div className="w-full max-w-2xl">
+        {/* Logo */}
+        <div className="w-[200px] mt-8 mb-12">
+          <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
+        </div>
+
+        {/* Category Title */}
+        <h1 className="text-6xl font-mono uppercase tracking-wider mb-12">
+          Top 100 {gameState.currentCategory}
+        </h1>
+
+        {/* Input Section */}
         <GuessInput 
           onSubmit={handleGuess}
           disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
@@ -65,13 +80,13 @@ export function GamePage({ onReturnHome }: GamePageProps) {
       </div>
 
       {/* Guesses Remaining */}
-      <div className="mt-6 mb-8">
-        <p className="text-sm">Guesses Remaining:</p>
-        <div className="flex gap-2 mt-2">
+      <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
+        <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
+        <div className="flex gap-3 items-center justify-center">
           {[...Array(4)].map((_, i) => (
             <div 
               key={i}
-              className={`w-2 h-2 rounded-full ${
+              className={`w-4 h-4 rounded-full ${
                 i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
               }`}
             />
@@ -87,8 +102,8 @@ export function GamePage({ onReturnHome }: GamePageProps) {
       {/* Progress Bar */}
       <div className="w-full max-w-2xl mt-8">
         <ProgressBar 
-          progress={gameState.guesses.filter(g => g.isInTop100).length} 
-          total={100}
+          progress={calculateScore(gameState.guesses)}
+          total={394} // Maximum possible score (sum of ranks 1-100)
         />
       </div>
 

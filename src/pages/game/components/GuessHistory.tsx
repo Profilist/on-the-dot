@@ -5,19 +5,29 @@ interface GuessHistoryProps {
 }
 
 export function GuessHistory({ guesses }: GuessHistoryProps) {
+  const isTopRank = (rank: number) => rank >= 90 && rank <= 100
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {guesses.map((guess, index) => (
         <div
           key={index}
-          className={`w-full p-4 rounded-full flex justify-between items-center
+          className={`w-full h-16 rounded-full flex items-center
             ${guess.isInTop100 
               ? 'bg-black text-white' 
               : 'bg-white border-2 border-black'
             }`}
         >
-          <span className="ml-4">{guess.movie}</span>
-          <span className={`mr-4 ${!guess.isInTop100 ? 'text-[#FF2C2C]' : ''}`}>
+          {/* Container for red circle indicator with fixed width */}
+          <div className="w-10 ml-6 flex items-center">
+            {guess.rank && isTopRank(guess.rank) && (
+              <div className="w-4 h-4 bg-[#FF2C2C] rounded-full" />
+            )}
+          </div>
+          
+          <span className="text-2xl">{guess.item}</span>
+          
+          <span className={`ml-auto mr-8 text-2xl font-mono text-[#FF2C2C]`}>
             {guess.isInTop100 ? `#${guess.rank}` : 'Close one!'}
           </span>
         </div>
