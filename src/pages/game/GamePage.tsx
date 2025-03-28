@@ -5,6 +5,7 @@ import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
+import { isTitleMatch } from '../../utils/titleMatcher'
 import type { Guess, GameState } from '../../types/game'
 
 interface GamePageProps {
@@ -38,11 +39,18 @@ export function GamePage({ }: GamePageProps) {
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    const rank = await checkRank(guess, gameState.currentCategory)
+    // Check if this guess was already tried
+    const alreadyGuessed = gameState.guesses.some(g => 
+      isTitleMatch(guess, g.originalTitle)
+    )
+    if (alreadyGuessed) return
+
+    const result = await checkRank(guess, gameState.currentCategory)
     const newGuess: Guess = {
-      item: guess, 
-      rank: rank || undefined,
-      isInTop100: rank !== null
+      item: guess,
+      originalTitle: result?.title ?? guess,
+      rank: result?.rank,
+      isInTop100: result !== null
     }
 
     setGameState(prev => {
@@ -57,7 +65,7 @@ export function GamePage({ }: GamePageProps) {
         isGameOver
       }
     })
-  }, [gameState.remainingGuesses, gameState.isGameOver, checkRank, gameState.currentCategory])
+  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory])
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
