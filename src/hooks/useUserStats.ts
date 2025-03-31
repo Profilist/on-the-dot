@@ -7,6 +7,7 @@ type UserStats = Database['public']['Tables']['user_stats']['Row']
 
 export function useUserStats(userId: string | null) {
   const [stats, setStats] = useState<UserStats | null>(null)
+  const [categoryStats, setCategoryStats] = useState<{ averageScore: number }>({ averageScore: 0 })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -15,17 +16,16 @@ export function useUserStats(userId: string | null) {
 
     setIsLoading(true)
     
-    const { data, error } = await supabase
+    // Load user stats
+    const { data: userStats, error: userError } = await supabase
       .from('user_stats')
       .select('*')
       .eq('id', userId)
       .single()
 
-    if (error) {
-      setError(error.message)
-    } else if (data) {
-      setStats(data)
-    } else {
+    if (userError && userError.code !== 'PGRST116') {
+      setError(userError.message)
+    } else if (!userStats) {
       // Create new stats record for user
       const { data: newStats, error: createError } = await supabase
         .from('user_stats')
@@ -34,7 +34,7 @@ export function useUserStats(userId: string | null) {
           current_streak: 0,
           max_streak: 0,
           total_plays: 0,
-          average_score: 0
+          last_played_at: null
         })
         .select()
         .single()
@@ -44,67 +44,104 @@ export function useUserStats(userId: string | null) {
       } else if (newStats) {
         setStats(newStats)
       }
+    } else {
+      setStats(userStats)
     }
 
     setIsLoading(false)
   }, [userId])
 
+  const loadCategoryStats = useCallback(async (category: string) => {
+    if (!category) return
+
+    const { data, error } = await supabase
+      .from('plays')
+      .select('score')
+      .eq('category', category)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    if (data && data.length > 0) {
+      const totalScore = data.reduce((sum, play) => sum + play.score, 0)
+      const average = Math.round(totalScore / data.length)
+      setCategoryStats({ averageScore: average })
+    } else {
+      setCategoryStats({ averageScore: 0 })
+    }
+  }, [])
+
   const savePlay = useCallback(async (
-    category: string,
     score: number,
+    category: string,
     guesses: Guess[]
   ) => {
     if (!userId || !stats) return
 
-    // Start a transaction to update both plays and stats
-    const { data: play, error: playError } = await supabase
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+    // Save the play
+    const { error: playError } = await supabase
       .from('plays')
       .insert({
         user_id: userId,
         category,
         score,
-        guesses
+        guesses,
+        played_at: now.toISOString()
       })
-      .select()
-      .single()
 
     if (playError) {
       setError(playError.message)
       return
     }
 
-    // Calculate new stats
-    const newAverage = ((stats.average_score * stats.total_plays) + score) / (stats.total_plays + 1)
-    const lastPlayDate = new Date(stats.last_played_at || 0)
-    const isConsecutiveDay = 
-      new Date().setHours(0, 0, 0, 0) - lastPlayDate.setHours(0, 0, 0, 0) <= 86400000
+    // Calculate streak
+    let newStreak = 1
+    let newMaxStreak = stats.max_streak
 
-    const newStats = {
-      total_plays: stats.total_plays + 1,
-      average_score: newAverage,
-      current_streak: isConsecutiveDay ? stats.current_streak + 1 : 1,
-      max_streak: Math.max(stats.max_streak, isConsecutiveDay ? stats.current_streak + 1 : 1),
-      last_played_at: new Date().toISOString()
+    if (stats.last_played_at) {
+      const lastPlayed = new Date(stats.last_played_at)
+      const lastPlayedDay = new Date(lastPlayed.getFullYear(), lastPlayed.getMonth(), lastPlayed.getDate())
+      const dayDiff = Math.floor((today.getTime() - lastPlayedDay.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (dayDiff === 1) {
+        // Consecutive day
+        newStreak = stats.current_streak + 1
+        newMaxStreak = Math.max(newStreak, stats.max_streak)
+      } else if (dayDiff === 0) {
+        // Same day, keep current streak
+        newStreak = stats.current_streak
+      }
+      // If dayDiff > 1, streak resets to 1 (already set above)
     }
 
-    const { error: statsError } = await supabase
+    // Update user stats
+    const { data: updatedStats, error: statsError } = await supabase
       .from('user_stats')
-      .update(newStats)
+      .update({
+        current_streak: newStreak,
+        max_streak: newMaxStreak,
+        total_plays: stats.total_plays + 1,
+        last_played_at: now.toISOString()
+      })
       .eq('id', userId)
+      .select()
+      .single()
 
     if (statsError) {
       setError(statsError.message)
       return
     }
 
-    setStats({ ...stats, ...newStats })
-  }, [userId, stats])
+    setStats(updatedStats)
+    
+    // Refresh category stats
+    await loadCategoryStats(category)
+  }, [userId, stats, loadCategoryStats])
 
-  return {
-    stats,
-    isLoading,
-    error,
-    loadStats,
-    savePlay
-  }
-} 
+  return { stats, categoryStats, isLoading, error, loadStats, loadCategoryStats, savePlay }
+}

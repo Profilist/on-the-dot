@@ -17,7 +17,8 @@ export function Finished({
   onPlayAgain,
   onShare 
 }: FinishedProps) {
-  const percentage = (score / averageScore) * 100
+  const percentage = (score / 394) * 100
+  const percentageAverage = (averageScore / 394) * 100
 
   const getMessage = (score: number) => {
     if (score === 0) return "Got the wrong category?"
@@ -83,7 +84,7 @@ export function Finished({
           <motion.div 
             className="h-full bg-blue-500"
             initial={{ width: 0 }}
-            animate={{ width: `${100-percentage}%` }}
+            animate={{ width: `${percentageAverage}%` }}
             transition={{ duration: 0.8, delay: 0.6 }}
           />
         </div>

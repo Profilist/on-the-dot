@@ -12,6 +12,7 @@ import { Finished } from './components/Finished'
 import { DottedBackground } from '../../components/DottedBackground'
 import { useAnonymousId } from '../../hooks/useAnonymousId'
 import { useUserStats } from '../../hooks/useUserStats'
+import { Category } from '../../hooks/useSupabase'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -30,7 +31,7 @@ interface GameState {
   guesses: Guess[]
   remainingGuesses: number
   isGameOver: boolean
-  currentCategory: string
+  currentCategory: Category
 }
 
 export function GamePage({ onReturnHome }: GamePageProps) {
@@ -40,13 +41,13 @@ export function GamePage({ onReturnHome }: GamePageProps) {
     guesses: [],
     remainingGuesses: 4,
     isGameOver: false,
-    currentCategory: 'movies'
+    currentCategory: "movies"
   })
-  const [averageScore, setAverageScore] = useState(195) 
-  const [streak, setStreak] = useState(1)
-  const [maxStreak, setMaxStreak] = useState(6)
   const userId = useAnonymousId()
-  const { savePlay } = useUserStats(userId)
+  const { savePlay, stats, categoryStats, loadCategoryStats } = useUserStats(userId)
+  const [averageScore, setAverageScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
 
   // Initialize user and load stats
   useEffect(() => {
@@ -55,6 +56,24 @@ export function GamePage({ onReturnHome }: GamePageProps) {
       loadStats(userId)
     }
   }, [initializeUser, loadStats])
+
+  // Load category stats when category changes
+  useEffect(() => {
+    loadCategoryStats(gameState.currentCategory)
+  }, [gameState.currentCategory, loadCategoryStats])
+
+  // Update stats from user_stats
+  useEffect(() => {
+    if (stats) {
+      setStreak(stats.current_streak)
+      setMaxStreak(stats.max_streak)
+    }
+  }, [stats])
+
+  // Update average score from category stats
+  useEffect(() => {
+    setAverageScore(categoryStats.averageScore)
+  }, [categoryStats])
 
   // Initialize game with random category
   useEffect(() => {
@@ -82,9 +101,10 @@ export function GamePage({ onReturnHome }: GamePageProps) {
 
       // If game is over, save the results
       if (isGameOver) {
-        handleGameFinish(gameState.currentCategory, [...prev.guesses, newGuess]).then(result => {
+        const score = calculateScore(newGuesses)
+        handleGameFinish(gameState.currentCategory, newGuesses).then(result => {
           if (result) {
-            savePlay(result.score.toString(), Number(gameState.currentCategory), [...prev.guesses, newGuess])
+            savePlay(score, gameState.currentCategory, newGuesses)
           }
         })
       }
