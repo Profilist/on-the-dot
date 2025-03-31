@@ -4,11 +4,14 @@ import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
-import type { Guess, GameState } from '../../types/game'
+import { useGame } from '../../hooks/useGame'
+import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
 import { motion } from 'framer-motion'
 import { Finished } from './components/Finished'
 import { DottedBackground } from '../../components/DottedBackground'
+import { useAnonymousId } from '../../hooks/useAnonymousId'
+import { useUserStats } from '../../hooks/useUserStats'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -23,17 +26,35 @@ function calculateScore(guesses: Guess[]): number {
   }, 0)
 }
 
-export function GamePage({ }: GamePageProps) {
+interface GameState {
+  guesses: Guess[]
+  remainingGuesses: number
+  isGameOver: boolean
+  currentCategory: string
+}
+
+export function GamePage({ onReturnHome }: GamePageProps) {
   const { checkRank, getRandomCategory } = useSupabase()
+  const { initializeUser, loadStats, handleGameFinish } = useGame()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
     isGameOver: false,
     currentCategory: 'movies'
   })
-  const [averageScore, setAverageScore] = useState(195) // This could be fetched from backend
+  const [averageScore, setAverageScore] = useState(195) 
   const [streak, setStreak] = useState(1)
   const [maxStreak, setMaxStreak] = useState(6)
+  const userId = useAnonymousId()
+  const { savePlay } = useUserStats(userId)
+
+  // Initialize user and load stats
+  useEffect(() => {
+    const userId = initializeUser()
+    if (userId) {
+      loadStats(userId)
+    }
+  }, [initializeUser, loadStats])
 
   // Initialize game with random category
   useEffect(() => {
@@ -44,9 +65,7 @@ export function GamePage({ }: GamePageProps) {
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    // Get all previous guesses' original titles for duplicate checking
     const previousGuesses = gameState.guesses.map(g => g.originalTitle)
-    
     const result = await checkRank(guess, gameState.currentCategory, previousGuesses)
     
     const newGuess: Guess = {
@@ -61,6 +80,15 @@ export function GamePage({ }: GamePageProps) {
       const newRemainingGuesses = prev.remainingGuesses - 1
       const isGameOver = newRemainingGuesses === 0
 
+      // If game is over, save the results
+      if (isGameOver) {
+        handleGameFinish(gameState.currentCategory, [...prev.guesses, newGuess]).then(result => {
+          if (result) {
+            savePlay(result.score.toString(), Number(gameState.currentCategory), [...prev.guesses, newGuess])
+          }
+        })
+      }
+
       return {
         ...prev,
         guesses: newGuesses,
@@ -68,7 +96,8 @@ export function GamePage({ }: GamePageProps) {
         isGameOver
       }
     })
-  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory])
+
+  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, handleGameFinish, savePlay])
 
   const handlePlayAgain = useCallback(() => {
     const category = getRandomCategory()
