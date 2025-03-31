@@ -39,18 +39,16 @@ export function GamePage({ }: GamePageProps) {
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    // Check if this guess was already tried
-    const alreadyGuessed = gameState.guesses.some(g => 
-      isTitleMatch(guess, g.originalTitle)
-    )
-    if (alreadyGuessed) return
-
-    const result = await checkRank(guess, gameState.currentCategory)
+    // Get all previous guesses' original titles for duplicate checking
+    const previousGuesses = gameState.guesses.map(g => g.originalTitle)
+    
+    const result = await checkRank(guess, gameState.currentCategory, previousGuesses)
+    
     const newGuess: Guess = {
       item: guess,
-      originalTitle: result?.title ?? guess,
-      rank: result?.rank,
-      isInTop100: result !== null
+      originalTitle: result.title,
+      rank: result.isMatch ? result.rank : undefined,
+      isInTop100: result.isMatch
     }
 
     setGameState(prev => {
