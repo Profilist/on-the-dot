@@ -19,12 +19,20 @@ export function Finished({
 }: FinishedProps) {
   const percentage = (score / averageScore) * 100
 
+  const getMessage = (score: number) => {
+    if (score === 0) return "Got the wrong category?"
+    if (score <= 100) return "Not Bad!"
+    if (score <= 200) return "Wow!"
+    if (score <= 300) return "You cheating?"
+    return "Ice cold."
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-2xl flex flex-col items-center gap-8 mt-12"
+      className="w-full max-w-xl flex flex-col items-center gap-8 mt-12"
     >
       {/* Title */}
       <motion.div
@@ -34,7 +42,7 @@ export function Finished({
         className="flex flex-col items-center gap-8"
       >
         <div className="w-12 h-12 bg-[#FF2C2C] rounded-full" />
-        <h2 className="text-6xl font-tech-mono">Not Bad!</h2>
+        <h2 className="text-6xl font-tech-mono">{getMessage(score)}</h2>
       </motion.div>
 
       {/* Stats Card */}
@@ -57,7 +65,7 @@ export function Finished({
         </div>
 
         {/* Streak Info */}
-        <div className="space-y-2 pt-4 border-t border-gray-200">
+        <div className="space-y-4 pt-4 border-t border-gray-200">
           <div className="text-xl text-gray-600">Streak: {streak} day</div>
           <div className="text-xl text-gray-600">Max Streak: {maxStreak} days</div>
         </div>
@@ -65,17 +73,22 @@ export function Finished({
         {/* Progress Bar */}
         <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
           <motion.div 
-            className="h-full bg-blue-500"
+            className="h-full bg-[#FF2C2C]"
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
             transition={{ duration: 0.8, delay: 0.6 }}
           />
+        </div>
+        <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
           <motion.div 
-            className="h-full bg-[#FF2C2C]"
+            className="h-full bg-blue-500"
             initial={{ width: 0 }}
-            animate={{ width: `${100 - percentage}%` }}
-            transition={{ duration: 0.8, delay: 0.8 }}
+            animate={{ width: `${100-percentage}%` }}
+            transition={{ duration: 0.8, delay: 0.6 }}
           />
+        </div>
+        <div className="font-bold">
+            You beat 100% of users!
         </div>
       </motion.div>
 
@@ -89,7 +102,7 @@ export function Finished({
           className="flex-1 py-4 border-2 border-black rounded-full hover:bg-gray-50 
                    transition-colors duration-200"
         >
-          Share Your Results
+          Share Your Results!
         </motion.button>
         
         <motion.button
