@@ -1,4 +1,3 @@
-// import { motion } from 'framer-motion'
 import { useState, useCallback, useEffect } from 'react'
 import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
@@ -6,6 +5,8 @@ import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
 import type { Guess, GameState } from '../../types/game'
+import { Instructions } from './components/Instructions'
+import { motion } from 'framer-motion'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -64,53 +65,77 @@ export function GamePage({ }: GamePageProps) {
     })
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory])
 
+  const showInstructions = gameState.guesses.length === 0
+
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
       <div className="w-full max-w-2xl">
         {/* Logo */}
-        <div className="w-[200px] mt-8 mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-[200px] mt-8 mb-12"
+        >
           <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
-        </div>
+        </motion.div>
 
         {/* Category Title */}
-        <h1 className="text-6xl font-mono uppercase tracking-wider mb-12">
+        <motion.h1 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-6xl font-mono uppercase tracking-wider mb-12"
+        >
           Top 100 {gameState.currentCategory}
-        </h1>
+        </motion.h1>
 
-        {/* Input Section */}
-        <GuessInput 
-          onSubmit={handleGuess}
-          disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
-        />
+        {/* Input Section - wrap in motion div */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <GuessInput 
+            onSubmit={handleGuess}
+            disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
+          />
+        </motion.div>
       </div>
 
-      {/* Guesses Remaining */}
-      <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
-        <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
-        <div className="flex gap-3 items-center justify-center">
-          {[...Array(4)].map((_, i) => (
-            <div 
-              key={i}
-              className={`w-4 h-4 rounded-full ${
-                i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
-              }`}
+      {showInstructions ? (
+        <Instructions category={gameState.currentCategory} />
+      ) : (
+        <>
+          {/* Guesses Remaining */}
+          <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
+            <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
+            <div className="flex gap-3 items-center justify-center">
+              {[...Array(4)].map((_, i) => (
+                <div 
+                  key={i}
+                  className={`w-4 h-4 rounded-full ${
+                    i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Guess History */}
+          <div className="w-full max-w-2xl space-y-4">
+            <GuessHistory guesses={gameState.guesses} />
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full max-w-2xl mt-8">
+            <ProgressBar 
+              progress={calculateScore(gameState.guesses)}
+              total={394}
             />
-          ))}
-        </div>
-      </div>
-
-      {/* Guess History */}
-      <div className="w-full max-w-2xl space-y-4">
-        <GuessHistory guesses={gameState.guesses} />
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full max-w-2xl mt-8">
-        <ProgressBar 
-          progress={calculateScore(gameState.guesses)}
-          total={394} // Maximum possible score (sum of ranks 1-100)
-        />
-      </div>
+          </div>
+        </>
+      )}
 
       <Footer className="mt-auto py-8" />
     </div>
