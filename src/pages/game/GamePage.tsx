@@ -14,10 +14,6 @@ import { useAnonymousId } from '../../hooks/useAnonymousId'
 import { useUserStats } from '../../hooks/useUserStats'
 import { Category } from '../../hooks/useSupabase'
 
-interface GamePageProps {
-  onReturnHome: () => void
-}
-
 function calculateScore(guesses: Guess[]): number {
   return guesses.reduce((total, guess) => {
     if (!guess.rank) return total
@@ -34,7 +30,7 @@ interface GameState {
   currentCategory: Category
 }
 
-export function GamePage({ onReturnHome }: GamePageProps) {
+export function GamePage() {
   const { checkRank, getRandomCategory } = useSupabase()
   const { initializeUser, loadStats, handleGameFinish } = useGame()
   const [gameState, setGameState] = useState<GameState>({
