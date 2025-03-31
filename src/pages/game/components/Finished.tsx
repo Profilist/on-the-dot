@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
 
 interface FinishedProps {
   score: number
@@ -22,6 +23,15 @@ export function Finished({
   onShare,
   categoryStats
 }: FinishedProps) {
+  const [isShared, setIsShared] = useState(false)
+  
+  const handleShare = () => {
+    onShare()
+    setIsShared(true)
+    // Reset after 2 seconds
+    setTimeout(() => setIsShared(false), 2000)
+  }
+
   const percentage = (score / 394) * 100
   const percentageAverage = (averageScore / 394) * 100
 
@@ -32,7 +42,7 @@ export function Finished({
   }
 
   const getMessage = (score: number) => {
-    if (score === 0) return "Got the wrong category?"
+    if (score === 0) return "Wrong category?"
     if (score <= 100) return "Not Bad!"
     if (score <= 200) return "Wow!"
     if (score <= 300) return "You cheating?"
@@ -144,11 +154,33 @@ export function Finished({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
-          onClick={onShare}
+          onClick={handleShare}
           className="flex-1 py-4 border-2 border-black rounded-full hover:bg-gray-50 
-                   transition-colors duration-200"
+                   transition-colors duration-200 relative overflow-hidden min-h-[60px]"
         >
-          Share Your Results!
+          <AnimatePresence mode="wait">
+            {isShared ? (
+              <motion.div
+                key="copied"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center h-full"
+              >
+                Copied! 🎉
+              </motion.div>
+            ) : (
+              <motion.div
+                key="share"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                className="flex items-center justify-center h-full"
+              >
+                Share Your Results!
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.button>
         
         <motion.button

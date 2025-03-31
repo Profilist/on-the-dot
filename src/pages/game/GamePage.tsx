@@ -146,7 +146,7 @@ export function GamePage({ onReturnHome }: GamePageProps) {
         return `${index + 1}. ${guess.originalTitle} ${indicator} ${rank}`
       }),
       '',
-      `🎮 Play at: https://onthedot.game`
+      `🎮 Play at: https://on-the-dot.vercel.app`
     ].join('\n')
 
     // Copy to clipboard
