@@ -7,6 +7,10 @@ interface FinishedProps {
   maxStreak: number
   onPlayAgain: () => void
   onShare: () => void
+  categoryStats: {
+    totalPlays: number
+    scoreDistribution: number[]
+  }
 }
 
 export function Finished({ 
@@ -15,10 +19,17 @@ export function Finished({
   streak, 
   maxStreak,
   onPlayAgain,
-  onShare 
+  onShare,
+  categoryStats
 }: FinishedProps) {
   const percentage = (score / 394) * 100
   const percentageAverage = (averageScore / 394) * 100
+
+  const calculatePercentile = (score: number, distribution: number[]) => {
+    if (distribution.length === 0) return 0
+    const belowScore = distribution.filter(s => s < score).length
+    return Math.round((belowScore / distribution.length) * 100)
+  }
 
   const getMessage = (score: number) => {
     if (score === 0) return "Got the wrong category?"
@@ -71,26 +82,60 @@ export function Finished({
           <div className="text-xl text-gray-600">Max Streak: {maxStreak} days</div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-[#FF2C2C]"
-            initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          />
+        {/* Progress Bars */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Your Score</span>
+              <span>{Math.round(percentage)}%</span>
+            </div>
+            <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-[#FF2C2C]"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Average Score</span>
+              <span>{Math.round(percentageAverage)}%</span>
+            </div>
+            <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-blue-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentageAverage}%` }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              />
+            </div>
+          </div>
         </div>
-        <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-blue-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${percentageAverage}%` }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          />
-        </div>
-        <div className="font-bold">
-            You beat 100% of users!
-        </div>
+
+        <motion.div 
+          className="mt-6 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1 }}
+        >
+          {categoryStats.totalPlays > 0 ? (
+            <div className="space-y-2">
+              <div className="text-xl font-bold">
+                You beat {calculatePercentile(score, categoryStats.scoreDistribution)}% of players!
+              </div>
+              <div className="text-sm text-gray-600">
+                Out of {categoryStats.totalPlays} total plays
+              </div>
+            </div>
+          ) : (
+            <div className="text-lg text-gray-600">
+              First play in this category!
+            </div>
+          )}
+        </motion.div>
       </motion.div>
 
       {/* Action Buttons */}

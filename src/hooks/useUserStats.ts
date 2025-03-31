@@ -7,7 +7,15 @@ type UserStats = Database['public']['Tables']['user_stats']['Row']
 
 export function useUserStats(userId: string | null) {
   const [stats, setStats] = useState<UserStats | null>(null)
-  const [categoryStats, setCategoryStats] = useState<{ averageScore: number }>({ averageScore: 0 })
+  const [categoryStats, setCategoryStats] = useState<{ 
+    averageScore: number,
+    scoreDistribution: number[],
+    totalPlays: number 
+  }>({ 
+    averageScore: 0,
+    scoreDistribution: [],
+    totalPlays: 0
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,6 +66,7 @@ export function useUserStats(userId: string | null) {
       .from('plays')
       .select('score')
       .eq('category', category)
+      .order('score', { ascending: true })
 
     if (error) {
       setError(error.message)
@@ -65,11 +74,21 @@ export function useUserStats(userId: string | null) {
     }
 
     if (data && data.length > 0) {
-      const totalScore = data.reduce((sum, play) => sum + play.score, 0)
-      const average = Math.round(totalScore / data.length)
-      setCategoryStats({ averageScore: average })
+      const scores = data.map(play => play.score)
+      const totalScore = scores.reduce((sum, score) => sum + score, 0)
+      const average = Math.round(totalScore / scores.length)
+      
+      setCategoryStats({ 
+        averageScore: average,
+        scoreDistribution: scores,
+        totalPlays: scores.length
+      })
     } else {
-      setCategoryStats({ averageScore: 0 })
+      setCategoryStats({ 
+        averageScore: 0,
+        scoreDistribution: [],
+        totalPlays: 0
+      })
     }
   }, [])
 

@@ -142,16 +142,18 @@ export function GamePage({ onReturnHome }: GamePageProps) {
 
       {/* Main content wrapper with background */}
       <div className="relative z-10 w-full flex flex-col items-center">
-        {gameState.isGameOver ? (
+        {gameState.isGameOver && (
           <Finished 
             score={calculateScore(gameState.guesses)}
             averageScore={averageScore}
             streak={streak}
             maxStreak={maxStreak}
+            categoryStats={categoryStats}
             onPlayAgain={handlePlayAgain}
             onShare={handleShare}
           />
-        ) : (
+        )}
+        {!gameState.isGameOver && (
           <>
             <div className="w-full max-w-2xl">
               {/* Logo */}
