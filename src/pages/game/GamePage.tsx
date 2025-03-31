@@ -38,11 +38,16 @@ export function GamePage({ }: GamePageProps) {
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    const rank = await checkRank(guess, gameState.currentCategory)
+    // Get all previous guesses' original titles for duplicate checking
+    const previousGuesses = gameState.guesses.map(g => g.originalTitle)
+    
+    const result = await checkRank(guess, gameState.currentCategory, previousGuesses)
+    
     const newGuess: Guess = {
-      item: guess, 
-      rank: rank || undefined,
-      isInTop100: rank !== null
+      item: guess,
+      originalTitle: result.title,
+      rank: result.isMatch ? result.rank : undefined,
+      isInTop100: result.isMatch
     }
 
     setGameState(prev => {
@@ -57,7 +62,7 @@ export function GamePage({ }: GamePageProps) {
         isGameOver
       }
     })
-  }, [gameState.remainingGuesses, gameState.isGameOver, checkRank, gameState.currentCategory])
+  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory])
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">

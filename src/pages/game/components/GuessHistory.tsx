@@ -25,7 +25,7 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
             )}
           </div>
           
-          <span className="text-2xl">{guess.item}</span>
+          <span className="text-2xl">{guess.originalTitle}</span>
           
           <span className={`ml-auto mr-8 text-2xl font-mono text-[#FF2C2C]`}>
             {guess.isInTop100 ? `#${guess.rank}` : 'Close one!'}
