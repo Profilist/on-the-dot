@@ -6,6 +6,7 @@ import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
 import type { Guess, GameState } from '../../types/game'
+import { Instructions } from './components/Instructions'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -64,6 +65,8 @@ export function GamePage({ }: GamePageProps) {
     })
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory])
 
+  const showInstructions = gameState.guesses.length === 0
+
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
       <div className="w-full max-w-2xl">
@@ -84,33 +87,39 @@ export function GamePage({ }: GamePageProps) {
         />
       </div>
 
-      {/* Guesses Remaining */}
-      <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
-        <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
-        <div className="flex gap-3 items-center justify-center">
-          {[...Array(4)].map((_, i) => (
-            <div 
-              key={i}
-              className={`w-4 h-4 rounded-full ${
-                i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
-              }`}
+      {showInstructions ? (
+        <Instructions category={gameState.currentCategory} />
+      ) : (
+        <>
+          {/* Guesses Remaining */}
+          <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
+            <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
+            <div className="flex gap-3 items-center justify-center">
+              {[...Array(4)].map((_, i) => (
+                <div 
+                  key={i}
+                  className={`w-4 h-4 rounded-full ${
+                    i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Guess History */}
+          <div className="w-full max-w-2xl space-y-4">
+            <GuessHistory guesses={gameState.guesses} />
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full max-w-2xl mt-8">
+            <ProgressBar 
+              progress={calculateScore(gameState.guesses)}
+              total={394}
             />
-          ))}
-        </div>
-      </div>
-
-      {/* Guess History */}
-      <div className="w-full max-w-2xl space-y-4">
-        <GuessHistory guesses={gameState.guesses} />
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full max-w-2xl mt-8">
-        <ProgressBar 
-          progress={calculateScore(gameState.guesses)}
-          total={394} // Maximum possible score (sum of ranks 1-100)
-        />
-      </div>
+          </div>
+        </>
+      )}
 
       <Footer className="mt-auto py-8" />
     </div>
