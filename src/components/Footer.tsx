@@ -40,15 +40,12 @@ export function Footer({ className = '' }: FooterProps) {
 
         <p className="text-sm text-gray-600">
         © 2025 11213Labs |{" "}
-        <a href="https://discord.com" target="_blank" rel="noopener noreferrer">
-            discord
-        </a>
         ,{" "}
-        <a href="https://x.com" target="_blank" rel="noopener noreferrer">
+        <a href="https://x.com/larrisx" target="_blank" rel="noopener noreferrer"target="_blank">
             x
         </a>
         ,{" "}
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"target="_blank">
             linkedin
         </a>
         </p>
