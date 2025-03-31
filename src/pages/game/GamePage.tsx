@@ -1,4 +1,3 @@
-// import { motion } from 'framer-motion'
 import { useState, useCallback, useEffect } from 'react'
 import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
@@ -7,6 +6,7 @@ import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
 import type { Guess, GameState } from '../../types/game'
 import { Instructions } from './components/Instructions'
+import { motion } from 'framer-motion'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -71,20 +71,36 @@ export function GamePage({ }: GamePageProps) {
     <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
       <div className="w-full max-w-2xl">
         {/* Logo */}
-        <div className="w-[200px] mt-8 mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-[200px] mt-8 mb-12"
+        >
           <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
-        </div>
+        </motion.div>
 
         {/* Category Title */}
-        <h1 className="text-6xl font-mono uppercase tracking-wider mb-12">
+        <motion.h1 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-6xl font-mono uppercase tracking-wider mb-12"
+        >
           Top 100 {gameState.currentCategory}
-        </h1>
+        </motion.h1>
 
-        {/* Input Section */}
-        <GuessInput 
-          onSubmit={handleGuess}
-          disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
-        />
+        {/* Input Section - wrap in motion div */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <GuessInput 
+            onSubmit={handleGuess}
+            disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
+          />
+        </motion.div>
       </div>
 
       {showInstructions ? (
