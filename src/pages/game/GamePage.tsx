@@ -130,9 +130,35 @@ export function GamePage({ onReturnHome }: GamePageProps) {
   }, [getRandomCategory])
 
   const handleShare = useCallback(() => {
-    // Implement sharing logic here
-    // Could copy results to clipboard or open share dialog
-  }, [])
+    const score = calculateScore(gameState.guesses)
+    const date = new Date().toLocaleDateString()
+    const categoryName = gameState.currentCategory.charAt(0).toUpperCase() + gameState.currentCategory.slice(1)
+    
+    // Create an aesthetic share text
+    const shareText = [
+      `🎯 On The Dot - ${categoryName} (${date})`,
+      `Score: ${score} points`,
+      '',
+      'My guesses:',
+      ...gameState.guesses.map((guess, index) => {
+        const indicator = guess.isInTop100 ? '✅' : '❌'
+        const rank = guess.rank ? `#${guess.rank}` : 'not in top 100'
+        return `${index + 1}. ${guess.originalTitle} ${indicator} ${rank}`
+      }),
+      '',
+      `🎮 Play at: https://onthedot.game`
+    ].join('\n')
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareText)
+      .then(() => {
+        // You could add a toast notification here if you have one
+        console.log('Results copied to clipboard!')
+      })
+      .catch(err => {
+        console.error('Failed to copy results:', err)
+      })
+  }, [gameState.guesses, gameState.currentCategory])
 
   const showInstructions = gameState.guesses.length === 0
 
