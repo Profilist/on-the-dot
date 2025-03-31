@@ -5,7 +5,6 @@ import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
 import { useSupabase } from '../../hooks/useSupabase'
-import { isTitleMatch } from '../../utils/titleMatcher'
 import type { Guess, GameState } from '../../types/game'
 
 interface GamePageProps {
