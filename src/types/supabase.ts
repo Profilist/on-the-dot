@@ -1,3 +1,5 @@
+import type { Guess } from './game'
+
 export type Json =
   | string
   | number
@@ -30,6 +32,55 @@ export interface Database {
           rank?: number
           category?: string
           created_at?: string
+        }
+      }
+      user_stats: {
+        Row: {
+          id: string  // UUID for anonymous user
+          current_streak: number
+          max_streak: number
+          total_plays: number
+          average_score: number
+          last_played_at: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          current_streak?: number
+          max_streak?: number
+          total_plays?: number
+          average_score?: number
+          last_played_at?: string
+          created_at?: string
+        }
+        Update: {
+          current_streak?: number
+          max_streak?: number
+          total_plays?: number
+          average_score?: number
+          last_played_at?: string
+        }
+      }
+      plays: {
+        Row: {
+          id: number
+          user_id: string
+          category: string
+          score: number
+          guesses: Guess[]
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          category: string
+          score: number
+          guesses: Guess[]
+          created_at?: string
+        }
+        Update: {
+          score?: number
+          guesses?: Guess[]
         }
       }
     }
