@@ -77,13 +77,45 @@ export function Finished({
         {/* Score Row */}
         <div className="flex gap-4 items-center">
           <span className="text-2xl font-medium">Final Score: {score}</span>
-          <div className="w-4 h-4 bg-[#FF2C2C] rounded-full" />
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ 
+              scale: [1, 1.1, 1],
+              transition: {
+                duration: 1,
+                repeat: Infinity
+              }
+            }}
+            transition={{ 
+              type: "spring",
+              stiffness: 500,
+              delay: 0.1
+            }}
+            className="w-4 h-4 bg-[#FF2C2C] rounded-full" 
+          />
         </div>
 
         {/* Average Score Row */}
         <div className="flex gap-4 items-center">
           <span className="text-2xl text-gray-700">Average Score: {averageScore}</span>
-          <div className="w-4 h-4 bg-blue-500 rounded-full" />
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ 
+              scale: [1, 1.1, 1],
+              transition: {
+                duration: 1,
+                repeat: Infinity
+              }
+            }}
+            transition={{ 
+              type: "spring",
+              stiffness: 500,
+              delay: 0.1
+            }}
+            className="w-4 h-4 bg-blue-500 rounded-full" 
+          />
         </div>
 
         {/* Streak Info */}
