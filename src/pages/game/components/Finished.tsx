@@ -32,7 +32,7 @@ export function Finished({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-xl flex flex-col items-center gap-8 mt-12"
+      className="w-full max-w-xl flex flex-col items-center gap-8 mt-12 bg-white p-8 rounded-xl"
     >
       {/* Title */}
       <motion.div

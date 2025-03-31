@@ -8,6 +8,7 @@ import type { Guess, GameState } from '../../types/game'
 import { Instructions } from './components/Instructions'
 import { motion } from 'framer-motion'
 import { Finished } from './components/Finished'
+import { DottedBackground } from '../../components/DottedBackground'
 
 interface GamePageProps {
   onReturnHome: () => void
@@ -87,91 +88,95 @@ export function GamePage({ }: GamePageProps) {
   const showInstructions = gameState.guesses.length === 0
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-center px-4">
-      {gameState.isGameOver ? (
-        // Finished state - only show the finished component
-        <Finished 
-          score={calculateScore(gameState.guesses)}
-          averageScore={averageScore}
-          streak={streak}
-          maxStreak={maxStreak}
-          onPlayAgain={handlePlayAgain}
-          onShare={handleShare}
-        />
-      ) : (
-        // Active game state - show header and game content
-        <>
-          <div className="w-full max-w-2xl">
-            {/* Logo */}
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="w-[200px] mt-8 mb-12"
-            >
-              <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
-            </motion.div>
+    <div className="min-h-screen w-full flex flex-col items-center px-4 relative">
+      <DottedBackground />
 
-            {/* Category Title - Updated font */}
-            <motion.h1 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-6xl font-tech-mono uppercase tracking-wider mb-12"
-            >
-              Top 100 {gameState.currentCategory}
-            </motion.h1>
+      {/* Main content wrapper with background */}
+      <div className="relative z-10 w-full flex flex-col items-center">
+        {gameState.isGameOver ? (
+          <Finished 
+            score={calculateScore(gameState.guesses)}
+            averageScore={averageScore}
+            streak={streak}
+            maxStreak={maxStreak}
+            onPlayAgain={handlePlayAgain}
+            onShare={handleShare}
+          />
+        ) : (
+          <>
+            <div className="w-full max-w-2xl">
+              {/* Logo */}
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-[200px] mt-8 mb-12 bg-white/100"
+              >
+                <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
+              </motion.div>
 
-            {/* Input Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <GuessInput 
-                onSubmit={handleGuess}
-                disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
-              />
-            </motion.div>
-          </div>
+              {/* Category Title */}
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
+              >
+                Top 100 {gameState.currentCategory}
+              </motion.h1>
 
-          {showInstructions ? (
-            <Instructions category={gameState.currentCategory} />
-          ) : (
-            <>
-              {/* Guesses Remaining */}
-              <div className="mt-6 mb-8 flex gap-2 items-center justify-center">
-                <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
-                <div className="flex gap-3 items-center justify-center">
-                  {[...Array(4)].map((_, i) => (
-                    <div 
-                      key={i}
-                      className={`w-4 h-4 rounded-full ${
-                        i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Guess History */}
-              <div className="w-full max-w-2xl space-y-4">
-                <GuessHistory guesses={gameState.guesses} />
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full max-w-2xl mt-8">
-                <ProgressBar 
-                  progress={calculateScore(gameState.guesses)}
-                  total={394}
+              {/* Input Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="bg-white/100"
+              >
+                <GuessInput 
+                  onSubmit={handleGuess}
+                  disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
                 />
-              </div>
-            </>
-          )}
-        </>
-      )}
+              </motion.div>
+            </div>
 
-      <Footer className="mt-auto py-8" />
+            {showInstructions ? (
+              <Instructions category={gameState.currentCategory} />
+            ) : (
+              <>
+                {/* Guesses Remaining */}
+                <div className="mt-6 mb-8 flex gap-2 items-center justify-center bg-white/100">
+                  <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
+                  <div className="flex gap-3 items-center justify-center">
+                    {[...Array(4)].map((_, i) => (
+                      <div 
+                        key={i}
+                        className={`w-4 h-4 rounded-full ${
+                          i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Guess History */}
+                <div className="w-full max-w-2xl space-y-4 bg-white/100">
+                  <GuessHistory guesses={gameState.guesses} />
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full max-w-2xl mt-8 bg-white/100">
+                  <ProgressBar 
+                    progress={calculateScore(gameState.guesses)}
+                    total={394}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        <Footer className="mt-auto py-8 bg-white/100 backdrop-blur-sm w-full" />
+      </div>
     </div>
   )
 } 

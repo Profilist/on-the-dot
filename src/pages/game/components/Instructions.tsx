@@ -10,7 +10,7 @@ export function Instructions({ category }: InstructionsProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-2xl border-3 border-black rounded-3xl p-8 mt-8"
+      className="w-full max-w-2xl border-3 border-black rounded-3xl p-8 mt-8 bg-white"
     >
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
