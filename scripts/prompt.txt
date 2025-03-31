@@ -1,0 +1,89 @@
+-- ==================================================
+-- LLM TASK: Generate Full SQL Script from Raw List
+-- ==================================================
+
+/*
+PART 1: USER PREPARATION (Read and Replace Before Giving to LLM)
+-----------------------------------------------------------------
+1.  Replace `<YourTableName>` everywhere below with the desired table name (e.g., 'athletes', 'movies', 'songs'). Use lowercase and underscores if needed.
+2.  Replace `<YourCategoryName>` below with a suitable Category for this category (e.g., 'Athletes', 'Movies', 'Songs'). This will be the default value for the 'Category' column.
+3.  Review the `CREATE TABLE` statement: Adjust columns (like 'rank') or constraints if your category doesn't fit the 'rank/title' structure perfectly.
+4.  Paste your *unformatted* Top 100 list into the designated section in PART 3.
+-----------------------------------------------------------------
+*/
+
+-- ==================================================
+-- PART 2: SQL Script Structure (DON'T INCLUDE THE COMMENTS IN YOUR RESPONSE)
+-- ==================================================
+
+-- Enable fuzzy search extension (if not already enabled)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Create the primary table
+-- !! USER: Ensure <YourTableName> and <YourCategoryName> are replaced !!
+-- !! USER: Adjust columns/constraints if needed for your specific category !!
+CREATE TABLE <YourTableName> (
+    id BIGSERIAL PRIMARY KEY,
+    title TEXT NOT NULL,                     -- Primary identifier/name from the list
+    rank INTEGER,                          -- Rank from the list (if available, NULL if not)
+    aliases TEXT[] DEFAULT ARRAY[]::TEXT[],  -- Array to store aliases/nicknames
+    category TEXT NOT NULL DEFAULT '<YourCategoryName>', -- Category Category
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    CONSTRAINT unique_rank_per_<YourCategoryName>_Category UNIQUE (rank, Category)
+);
+
+-- Create trigram index on the primary identifier for fast fuzzy search
+-- !! USER: Ensure <YourTableName> is replaced !!
+CREATE INDEX <YourTableName>_title_idx ON <YourTableName> USING gin (title gin_trgm_ops);
+
+-- Create GIN index on the aliases array for efficient searching within aliases
+-- !! USER: Ensure <YourTableName> is replaced !!
+CREATE INDEX <YourTableName>_aliases_idx ON <YourTableName> USING GIN (aliases);
+
+CREATE POLICY "Enable read access for all users"
+  ON <YourTableName>
+  FOR SELECT
+  USING (true);
+
+-- ==================================================
+-- PART 3: User Input & LLM Processing Instructions
+-- ==================================================
+
+/*
+-------------------------------------------------
+LLM PROCESSING INSTRUCTIONS START
+-------------------------------------------------
+
+Your Task:
+1.  **Parse the Raw List:** Process the raw text provided below under "RAW TOP 100 LIST". Extract the rank (usually the number at the start of a line) and the title (the main text part) for each item. Handle potential inconsistencies in formatting. If a rank is not clearly present, you can attempt to infer it sequentially or assign NULL.
+2.  **Generate Aliases:** For each extracted item (Title), generate a list of relevant aliases based on the "Alias Generation Rules" provided below.
+3.  **Format INSERT Statements:** Create one SQL `INSERT INTO <YourTableName> ...` statement for each item parsed from the raw list. Use the extracted rank, title, and the generated aliases. Follow the "INSERT Statement Template". Ensure `<YourTableName>` matches the table name defined above.
+4.  **Assemble the Final Script:** Output the complete SQL script, including the `CREATE EXTENSION`, `CREATE TABLE`, `CREATE INDEX` statements from PART 2, followed by *all* the generated `INSERT` statements, and finally the `ALTER TABLE` and `CREATE POLICY` statements from PART 4.
+
+Alias Generation Rules (Apply Contextually based on the items in the list):
+1.  Core Identity & Parts:
+    *   People: Include full name. Include last name. Include first name ONLY if uncommon/distinctive.
+    *   Titles (Movies, Books, etc.): Include full title. Include series name if different. Include alternate spellings/numbers. Include common names (ex. Star Wars: A New Hope -> A New Hope) 
+    *   Other: Adapt based on category (e.g., Brand name, Product name).
+2.  Common Informal Names: Include widely recognized informal names, colloquialisms.
+3.  Abbreviations & Acronyms: Include common initialisms, acronyms.
+4.  Variations & Alternate Forms: Include common alternative spellings, representations (e.g., numbers spelled out for movie titles if common), series names.
+5.  Associated Identifiers: Include distinct/well-known online handles/Categorys (*without* '@') if applicable and commonly used as identifiers.
+6.  Contextual Relevance: Prioritize *commonly used* aliases relevant to the item's identity. Avoid overly generic terms or nicknames far away from their name. Focus on distinct, known references. Limit excessive permutations.
+
+INSERT Statement Template:
+-- Use this format for EACH item parsed from the raw list below.
+-- Replace <Rank> (use NULL if no rank found/inferred), <Title>, and <Aliases>.
+-- Ensure <YourTableName> matches the table name defined above.
+INSERT INTO <YourTableName> (rank, title, aliases) VALUES
+  (<Rank>, '<Title>', ARRAY['<Alias1>', '<Alias2>', ..., '<AliasN>']::TEXT[]); -- Use ARRAY[]::TEXT[] for no aliases. Remember to escape internal single quotes in <Title> and Aliases (e.g., 'O''Neal').
+
+Example Generated INSERT (Illustrative):
+INSERT INTO athletes (rank, title, aliases) VALUES (4, 'LeBron James', ARRAY['LeBron James', 'LeBron', 'James', 'LBJ', 'King James']::TEXT[]);
+INSERT INTO movies (rank, title, aliases) VALUES (1, 'The Shawshank Redemption', ARRAY['The Shawshank Redemption', 'Shawshank Redemption', 'Shawshank']::TEXT[]);
+
+
+-------------------------------------------------
+RAW TOP 100 LIST (User pastes their raw list below this line)
+-------------------------------------------------
+

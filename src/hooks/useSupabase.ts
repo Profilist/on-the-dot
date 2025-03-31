@@ -4,7 +4,7 @@ import { normalizeTitle } from '../utils/titleMatcher'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
-const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'athletes'] as const 
+const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'athletes', 'most popular boy names', 'most popular girl names'] as const 
 
 export type Category = typeof AVAILABLE_CATEGORIES[number]
 
