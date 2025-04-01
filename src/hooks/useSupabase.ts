@@ -95,7 +95,7 @@ export function useSupabase() {
     } catch (err) {
       if (isSupabaseError(err)) {
         setError(`Database error" ${err.message}`)
-        console.error('Supasbase error:', {
+        console.error('Supabase error:', {
           message: err.message,
           details: err.details,
           hint: err.hint

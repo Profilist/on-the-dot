@@ -53,7 +53,7 @@ export function GamePage() {
 
   // Load category stats when category changes
   useEffect(() => {
-    loadCategoryStats(gameState.currentCategory)
+    loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
   }, [gameState.currentCategory, loadCategoryStats])
 
   // Update stats from user_stats
@@ -102,7 +102,7 @@ export function GamePage() {
       savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [...gameState.guesses, newGuess]).then(() => {
         // Reload stats and category stats after saving to ensure we have latest data
         loadStats()
-        loadCategoryStats(gameState.currentCategory)
+        loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
       })
     }
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
