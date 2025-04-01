@@ -8,12 +8,10 @@ type UserStats = Database['public']['Tables']['user_stats']['Row']
 export function useUserStats(userId: string | null) {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [categoryStats, setCategoryStats] = useState<{ 
-    averageScore: number,
     scoreDistribution: number[],
     totalPlays: number,
     totalScore: number
   }>({ 
-    averageScore: 0,
     scoreDistribution: [],
     totalPlays: 0,
     totalScore: 0
@@ -45,7 +43,6 @@ export function useUserStats(userId: string | null) {
           max_streak: 0,
           total_plays: 0,
           total_score: 0,
-          average_score: 0,
           last_played_at: new Date().toISOString()
         })
         .select()
@@ -80,17 +77,14 @@ export function useUserStats(userId: string | null) {
     if (data && data.length > 0) {
       const scores = data.map(play => play.score)
       const totalScore = scores.reduce((sum, score) => sum + score, 0)
-      const average = Math.round(totalScore / scores.length)
       
       setCategoryStats({ 
-        averageScore: average,
         scoreDistribution: scores,
         totalPlays: scores.length,
         totalScore: totalScore
       })
     } else {
       setCategoryStats({ 
-        averageScore: 0,
         scoreDistribution: [],
         totalPlays: 0,
         totalScore: 0
@@ -154,7 +148,6 @@ export function useUserStats(userId: string | null) {
       max_streak: newMaxStreak,
       total_plays: totalPlays,
       total_score: totalScore,
-      average_score: totalScore / totalPlays,
       last_played_at: now.toISOString()
     }
 
@@ -180,7 +173,6 @@ export function useUserStats(userId: string | null) {
       ...prev,
       totalPlays: prev.totalPlays + 1,
       totalScore: prev.totalScore + score,
-      averageScore: (prev.totalScore + score) / (prev.totalPlays + 1),
       scoreDistribution: [...prev.scoreDistribution, score]
     }))
 

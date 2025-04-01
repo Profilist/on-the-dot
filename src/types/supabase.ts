@@ -41,7 +41,6 @@ export interface Database {
           max_streak: number
           total_plays: number
           total_score: number
-          average_score: number
           last_played_at: string
           created_at: string
         }
@@ -51,7 +50,6 @@ export interface Database {
           max_streak?: number
           total_plays?: number
           total_score?: number
-          average_score?: number
           last_played_at?: string
           created_at?: string
         }
@@ -60,7 +58,6 @@ export interface Database {
           max_streak?: number
           total_plays?: number
           total_score?: number
-          average_score?: number
           last_played_at?: string
         }
       }

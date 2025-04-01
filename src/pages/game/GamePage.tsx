@@ -40,7 +40,6 @@ export function GamePage() {
   })
   const userId = useAnonymousId()
   const { savePlay, stats, categoryStats, loadCategoryStats, loadStats } = useUserStats(userId)
-  const [averageScore, setAverageScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
@@ -62,16 +61,8 @@ export function GamePage() {
     if (stats) {
       setStreak(stats.current_streak || 0)
       setMaxStreak(stats.max_streak || 0)
-      setAverageScore(stats.average_score || 0)
     }
   }, [stats])
-
-  // Update average score from category stats
-  useEffect(() => {
-    if (categoryStats.averageScore > 0) {
-      setAverageScore(categoryStats.averageScore)
-    }
-  }, [categoryStats])
 
   // Initialize game with random category
   useEffect(() => {
@@ -97,16 +88,6 @@ export function GamePage() {
       const newRemainingGuesses = prev.remainingGuesses - 1
       const isGameOver = newRemainingGuesses === 0
 
-      // If game is over, save the results
-      if (isGameOver) {
-        const score = calculateScore(newGuesses)
-        savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], newGuesses).then(() => {
-          // Reload stats and category stats after saving to ensure we have latest data
-          loadStats()
-          loadCategoryStats(gameState.currentCategory)
-        })
-      }
-
       return {
         ...prev,
         guesses: newGuesses,
@@ -115,6 +96,15 @@ export function GamePage() {
       }
     })
 
+    // If game is over, save the results after state update
+    if (gameState.remainingGuesses === 1) { 
+      const score = calculateScore([...gameState.guesses, newGuess])
+      savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [...gameState.guesses, newGuess]).then(() => {
+        // Reload stats and category stats after saving to ensure we have latest data
+        loadStats()
+        loadCategoryStats(gameState.currentCategory)
+      })
+    }
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
 
   const handlePlayAgain = useCallback(() => {
@@ -169,7 +159,6 @@ export function GamePage() {
         {gameState.isGameOver && (
           <Finished 
             score={calculateScore(gameState.guesses)}
-            averageScore={averageScore}
             streak={streak}
             maxStreak={maxStreak}
             categoryStats={categoryStats}

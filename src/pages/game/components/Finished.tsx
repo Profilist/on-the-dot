@@ -3,20 +3,19 @@ import { useState } from 'react'
 
 interface FinishedProps {
   score: number
-  averageScore: number
   streak: number
   maxStreak: number
   onPlayAgain: () => void
   onShare: () => void
   categoryStats: {
     totalPlays: number
+    totalScore: number
     scoreDistribution: number[]
   }
 }
 
 export function Finished({ 
   score, 
-  averageScore, 
   streak, 
   maxStreak,
   onPlayAgain,
@@ -33,7 +32,10 @@ export function Finished({
   }
 
   const percentage = (score / 394) * 100
-  const percentageAverage = (averageScore / 394) * 100
+  const averageScore = categoryStats.totalPlays > 0 
+    ? Math.round(categoryStats.totalScore / categoryStats.totalPlays) 
+    : 0
+  const averagePercentage = (averageScore / 394) * 100
 
   const calculatePercentile = (score: number, distribution: number[]) => {
     if (distribution.length === 0) return 0
@@ -95,10 +97,8 @@ export function Finished({
             className="w-4 h-4 bg-[#FF2C2C] rounded-full" 
           />
         </div>
-
-        {/* Average Score Row */}
         <div className="flex gap-4 items-center">
-          <span className="text-2xl text-gray-700">Average Score: {Math.round(averageScore)}</span>
+          <span className="text-2xl">Average Score: {averageScore}</span>
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -144,17 +144,18 @@ export function Finished({
               />
             </div>
           </div>
-
+        </div>
+        <div className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Average Score</span>
-              <span>{Math.round(percentageAverage)}%</span>
+              <span>{Math.round(averagePercentage)}%</span>
             </div>
             <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
               <motion.div 
                 className="h-full bg-blue-500"
                 initial={{ width: 0 }}
-                animate={{ width: `${percentageAverage}%` }}
+                animate={{ width: `${averagePercentage}%` }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               />
             </div>
