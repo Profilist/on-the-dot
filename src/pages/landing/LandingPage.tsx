@@ -29,7 +29,7 @@ export function LandingPage({ onStartGame }: LandingPageProps) {
 
           {/* Divider lines */}
           <FadeIn delay={0.3}>
-            <div className="w-screen border-t border-black" />
+            <div className="w-screen" />
           </FadeIn>
 
           {/* Game description */}
@@ -41,7 +41,7 @@ export function LandingPage({ onStartGame }: LandingPageProps) {
 
           {/* Bottom divider */}
           <FadeIn delay={0.5}>
-            <div className="w-screen border-t border-black" />
+            <div className="w-screen" />
           </FadeIn>
 
           {/* Play button */}

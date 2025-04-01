@@ -24,7 +24,7 @@ export function GuessInput({ onSubmit, disabled = false }: GuessInputProps) {
         onChange={(e) => setInput(e.target.value)}
         disabled={disabled}
         className="w-full h-24 px-8 text-2xl font-medium border-3 border-black rounded-2xl 
-                 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed
+                 outline-none disabled:bg-gray-100
                  placeholder:text-gray-400 placeholder:italic"
         style={{ fontFamily: 'system-ui' }}
       />

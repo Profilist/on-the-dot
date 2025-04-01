@@ -70,7 +70,7 @@ export function Finished({
         className="flex flex-col items-center gap-8"
       >
         <div className="w-12 h-12 bg-[#FF2C2C] rounded-full" />
-        <h2 className="text-6xl font-tech-mono">{getMessage(score)}</h2>
+        <h2 className="text-6xl text-center font-tech-mono">{getMessage(score)}</h2>
       </motion.div>
 
       {/* Stats Card */}

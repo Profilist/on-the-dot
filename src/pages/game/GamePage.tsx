@@ -7,7 +7,7 @@ import { useSupabase, CATEGORY_DISPLAY_NAMES } from '../../hooks/useSupabase'
 import { useGame } from '../../hooks/useGame'
 import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Finished } from './components/Finished'
 import { DottedBackground } from '../../components/DottedBackground'
 import { useAnonymousId } from '../../hooks/useAnonymousId'
@@ -38,6 +38,8 @@ export function GamePage() {
     isGameOver: false,
     currentCategory: "grossing movies"
   })
+  const [showResults, setShowResults] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
   const userId = useAnonymousId()
   const { savePlay, stats, categoryStats, loadCategoryStats, loadStats } = useUserStats(userId)
   const [streak, setStreak] = useState(0)
@@ -88,6 +90,14 @@ export function GamePage() {
       const newRemainingGuesses = prev.remainingGuesses - 1
       const isGameOver = newRemainingGuesses === 0
 
+      if (isGameOver) {
+        setIsExiting(true)
+        // Wait for exit animations to complete before showing results
+        setTimeout(() => {
+          setShowResults(true)
+        }, 1200) // Slightly longer than exit animation duration
+      }
+
       return {
         ...prev,
         guesses: newGuesses,
@@ -115,6 +125,7 @@ export function GamePage() {
       isGameOver: false,
       currentCategory: category
     })
+    setShowResults(false)
   }, [getRandomCategory])
 
   const handleShare = useCallback(() => {
@@ -155,89 +166,132 @@ export function GamePage() {
       <DottedBackground />
 
       {/* Main content wrapper with background */}
-      <div className="relative z-10 w-full flex flex-col items-center">
-        {gameState.isGameOver && (
-          <Finished 
-            score={calculateScore(gameState.guesses)}
-            streak={streak}
-            maxStreak={maxStreak}
-            categoryStats={categoryStats}
-            onPlayAgain={handlePlayAgain}
-            onShare={handleShare}
-          />
-        )}
-        {!gameState.isGameOver && (
-          <>
-            <div className="w-full max-w-2xl">
-              {/* Logo */}
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="w-[200px] mt-8 mb-12 bg-white/100"
-              >
-                <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
-              </motion.div>
-
-              {/* Category Title */}
-              <motion.h1 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
-              >
-                Top 100 {gameState.currentCategory}
-              </motion.h1>
-
-              {/* Input Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-white/100"
-              >
-                <GuessInput 
-                  onSubmit={handleGuess}
-                  disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
+      <div className="relative z-10 w-full flex flex-col items-center max-w-2xl mx-auto">
+        <AnimatePresence mode="wait">
+          {gameState.isGameOver && showResults && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="w-full flex justify-center items-center"
+            >
+              <div className="w-full max-w-2xl">
+                <Finished 
+                  score={calculateScore(gameState.guesses)}
+                  streak={streak}
+                  maxStreak={maxStreak}
+                  categoryStats={categoryStats}
+                  onPlayAgain={handlePlayAgain}
+                  onShare={handleShare}
                 />
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
+          )}
+          {!showResults && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="w-full"
+            >
+              <div className="w-full max-w-2xl">
+                {/* Logo */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.6 }}
+                  className="w-[200px] mt-8 mb-12 bg-white/100"
+                >
+                  <img src="/logo.svg" alt="On the Dot Logo" className="w-full h-auto" />
+                </motion.div>
 
-            {showInstructions ? (
-              <Instructions category={gameState.currentCategory} />
-            ) : (
-              <>
-                {/* Guesses Remaining */}
-                <div className="mt-6 mb-8 flex gap-2 items-center justify-center bg-white/100">
-                  <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
-                  <div className="flex gap-3 items-center justify-center">
-                    {[...Array(4)].map((_, i) => (
-                      <div 
-                        key={i}
-                        className={`w-4 h-4 rounded-full ${
-                          i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* Category Title */}
+                <motion.h1 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.6, delay: isExiting ? 0 : 0.2 }}
+                  className="text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
+                >
+                  Top 100 {gameState.currentCategory}
+                </motion.h1>
 
-                {/* Guess History */}
-                <div className="w-full max-w-2xl space-y-4 bg-white/100">
-                  <GuessHistory guesses={gameState.guesses} />
-                </div>
-
-                {/* Progress Bar */}
-                <div className="w-full max-w-2xl mt-8 bg-white/100">
-                  <ProgressBar 
-                    progress={calculateScore(gameState.guesses)}
-                    total={394}
+                {/* Input Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.6, delay: isExiting ? 0 : 0.4 }}
+                  className="bg-white/100"
+                >
+                  <GuessInput 
+                    onSubmit={handleGuess}
+                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
                   />
-                </div>
-              </>
-            )}
-          </>
-        )}
+                </motion.div>
+              </div>
+
+              {showInstructions ? (
+                <Instructions category={gameState.currentCategory} />
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                >
+                  {/* Guesses Remaining */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    className="mt-6 mb-8 flex gap-2 items-center justify-center bg-white/100"
+                  >
+                    <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
+                    <div className="flex gap-3 items-center justify-center">
+                      {[...Array(4)].map((_, i) => (
+                        <div 
+                          key={i}
+                          className={`w-4 h-4 rounded-full ${
+                            i < gameState.remainingGuesses ? 'bg-black' : 'bg-[#FF2C2C]'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+
+                  {/* Guess History */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    className="w-full max-w-2xl space-y-4 bg-white/100"
+                  >
+                    <GuessHistory guesses={gameState.guesses} />
+                  </motion.div>
+
+                  {/* Progress Bar */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    className="w-full max-w-2xl mt-8 bg-white/100"
+                  >
+                    <ProgressBar 
+                      progress={calculateScore(gameState.guesses)}
+                      total={394}
+                    />
+                  </motion.div>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Footer className="mt-auto py-8 bg-white/100 backdrop-blur-sm w-full" />
       </div>
