@@ -78,6 +78,13 @@ export function Instructions({ category }: InstructionsProps) {
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
+            whileHover={{ 
+              scale: [1, 1.1, 1],
+              transition: {
+                duration: 1,
+                repeat: Infinity
+              }
+            }}
             transition={{ 
               type: "spring",
               stiffness: 500,
@@ -99,11 +106,19 @@ export function Instructions({ category }: InstructionsProps) {
           whileHover={{ scale: 1.1 }}
           transition={{ duration: 0.2 }}
         >
-          <a href="https://x.com" target="_blank" rel="noopener noreferrer">
+          <a href="https://x.com/larrisx" target="_blank" rel="noopener noreferrer">
             x
           </a>
+        </motion.span>{" and "}
+        <motion.span
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <a href="https://www.linkedin.com/in/dnlwu" target="_blank" rel="noopener noreferrer">
+            linkedin
+          </a>
         </motion.span>{" "}
-        for the latest updates and join the ON THE DOT discord community!
+        for the latest updates!
       </motion.div>
     </motion.div>
   );

@@ -3,7 +3,7 @@ import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
-import { useSupabase } from '../../hooks/useSupabase'
+import { useSupabase, CATEGORY_DISPLAY_NAMES } from '../../hooks/useSupabase'
 import { useGame } from '../../hooks/useGame'
 import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
@@ -17,7 +17,6 @@ import { Category } from '../../hooks/useSupabase'
 function calculateScore(guesses: Guess[]): number {
   return guesses.reduce((total, guess) => {
     if (!guess.rank) return total
-    // Award points based on how close the guess is to being in top 100
     const pointValue = guess.isInTop100 ? guess.rank : 0
     return total + pointValue
   }, 0)
@@ -32,24 +31,23 @@ interface GameState {
 
 export function GamePage() {
   const { checkRank, getRandomCategory } = useSupabase()
-  const { initializeUser, loadStats, handleGameFinish } = useGame()
+  const { initializeUser } = useGame()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
     isGameOver: false,
-    currentCategory: "movies"
+    currentCategory: "grossing movies"
   })
   const userId = useAnonymousId()
-  const { savePlay, stats, categoryStats, loadCategoryStats } = useUserStats(userId)
-  const [averageScore, setAverageScore] = useState(0)
+  const { savePlay, stats, categoryStats, loadCategoryStats, loadStats } = useUserStats(userId)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
   // Initialize user and load stats
   useEffect(() => {
-    const userId = initializeUser()
-    if (userId) {
-      loadStats(userId)
+    const newUserId = initializeUser()
+    if (newUserId) {
+      loadStats()
     }
   }, [initializeUser, loadStats])
 
@@ -61,15 +59,10 @@ export function GamePage() {
   // Update stats from user_stats
   useEffect(() => {
     if (stats) {
-      setStreak(stats.current_streak)
-      setMaxStreak(stats.max_streak)
+      setStreak(stats.current_streak || 0)
+      setMaxStreak(stats.max_streak || 0)
     }
   }, [stats])
-
-  // Update average score from category stats
-  useEffect(() => {
-    setAverageScore(categoryStats.averageScore)
-  }, [categoryStats])
 
   // Initialize game with random category
   useEffect(() => {
@@ -95,16 +88,6 @@ export function GamePage() {
       const newRemainingGuesses = prev.remainingGuesses - 1
       const isGameOver = newRemainingGuesses === 0
 
-      // If game is over, save the results
-      if (isGameOver) {
-        const score = calculateScore(newGuesses)
-        handleGameFinish(gameState.currentCategory, newGuesses).then(result => {
-          if (result) {
-            savePlay(score, gameState.currentCategory, newGuesses)
-          }
-        })
-      }
-
       return {
         ...prev,
         guesses: newGuesses,
@@ -113,7 +96,16 @@ export function GamePage() {
       }
     })
 
-  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, handleGameFinish, savePlay])
+    // If game is over, save the results after state update
+    if (gameState.remainingGuesses === 1) { 
+      const score = calculateScore([...gameState.guesses, newGuess])
+      savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [...gameState.guesses, newGuess]).then(() => {
+        // Reload stats and category stats after saving to ensure we have latest data
+        loadStats()
+        loadCategoryStats(gameState.currentCategory)
+      })
+    }
+  }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
 
   const handlePlayAgain = useCallback(() => {
     const category = getRandomCategory()
@@ -167,7 +159,6 @@ export function GamePage() {
         {gameState.isGameOver && (
           <Finished 
             score={calculateScore(gameState.guesses)}
-            averageScore={averageScore}
             streak={streak}
             maxStreak={maxStreak}
             categoryStats={categoryStats}
