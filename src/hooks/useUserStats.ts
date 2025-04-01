@@ -120,7 +120,7 @@ export function useUserStats(userId: string | null) {
     }
 
     // Calculate streak and stats
-    let newStreak = 1
+    let newStreak = 1  // Default to 1 for first play or broken streak
     let newMaxStreak = stats?.max_streak || 0
     let totalPlays = (stats?.total_plays || 0) + 1
     let totalScore = (stats?.total_score || 0) + score
@@ -132,14 +132,16 @@ export function useUserStats(userId: string | null) {
 
       if (dayDiff === 1) {
         // Consecutive day
-        newStreak = (stats?.current_streak || 0) + 1
-        newMaxStreak = Math.max(newStreak, stats?.max_streak || 0)
+        newStreak = (stats.current_streak || 0) + 1
       } else if (dayDiff === 0) {
-        // Same day, keep current streak
-        newStreak = stats?.current_streak || 0
+        // Same day, keep current streak but ensure it's at least 1
+        newStreak = Math.max(1, stats.current_streak || 0)
       }
       // If dayDiff > 1, streak resets to 1 (already set above)
     }
+    
+    // Update max streak if current streak is higher
+    newMaxStreak = Math.max(newStreak, newMaxStreak)
 
     // Update user stats
     const newStats = {

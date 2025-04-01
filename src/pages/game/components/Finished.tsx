@@ -44,11 +44,15 @@ export function Finished({
   }
 
   const getMessage = (score: number) => {
-    if (score === 0) return "Wrong category?"
-    if (score <= 100) return "Not Bad!"
-    if (score <= 200) return "Wow!"
-    if (score <= 300) return "You cheating?"
-    return "Ice cold."
+    if (score <= 24) return "Make sure you read the right category?"
+    if (score <= 49) return "Interesting score"
+    if (score <= 99) return "Message us on LinkedIn for tips"
+    if (score <= 149) return "Insightful"
+    if (score <= 199) return "Congrats!"
+    if (score <= 249) return "Kudos to you!"
+    if (score <= 299) return "Love this!"
+    if (score <= 384) return "LUCK OR GENIUS?"
+    return "GOAT"
   }
 
   return (
