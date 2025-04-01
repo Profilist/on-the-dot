@@ -67,7 +67,7 @@ export function useUserStats(userId: string | null) {
       .from('plays')
       .select('score')
       .eq('category', category)
-      .lt('created_at', new Date().toISOString()) // Only get past plays
+      .lt('created_at', new Date().toISOString())
       .order('score', { ascending: true })
 
     if (error) {
