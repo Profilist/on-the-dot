@@ -145,7 +145,7 @@ export function GamePage() {
         return `${index + 1}. ${guess.originalTitle} ${indicator} ${rank}`
       }),
       '',
-      `🎮 Play at: https://on-the-dot.vercel.app`
+      `🎮 Play at: https://www.playonthedot.com`
     ].join('\n')
 
     // Copy to clipboard
