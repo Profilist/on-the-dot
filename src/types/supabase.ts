@@ -40,6 +40,7 @@ export interface Database {
           current_streak: number
           max_streak: number
           total_plays: number
+          total_score: number
           average_score: number
           last_played_at: string
           created_at: string
@@ -49,6 +50,7 @@ export interface Database {
           current_streak?: number
           max_streak?: number
           total_plays?: number
+          total_score?: number
           average_score?: number
           last_played_at?: string
           created_at?: string
@@ -57,6 +59,7 @@ export interface Database {
           current_streak?: number
           max_streak?: number
           total_plays?: number
+          total_score?: number
           average_score?: number
           last_played_at?: string
         }

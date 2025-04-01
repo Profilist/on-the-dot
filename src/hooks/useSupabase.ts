@@ -23,13 +23,13 @@ interface DbItem {
 }
 
 export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
-  'grossing movies': 'Movies',
-  'most streamed songs': 'Songs',
-  'most followed instagram accounts': 'Instagram Accounts',
-  'most visited countries': 'Most Visited Countries',
-  'athletes': 'Athletes',
-  'most popular boy names': 'Boy Names',
-  'most popular girl names': 'Girl Names'
+  'grossing movies': 'movies',
+  'most streamed songs': 'songs',
+  'most followed instagram accounts': 'instagram accounts',
+  'most visited countries': 'most visited countries',
+  'athletes': 'athletes',
+  'most popular boy names': 'boy names',
+  'most popular girl names': 'girl names'
 }
 
 export function useSupabase() {

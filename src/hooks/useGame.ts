@@ -68,70 +68,14 @@ export function useGame() {
     }
   }, [])
 
-  // Calculate score based on guesses
-  const calculateScore = useCallback((guesses: Guess[]): number => {
-    return guesses.reduce((score, guess) => {
-      if (!guess.rank) return score
-      const distance = Math.abs(100 - guess.rank)
-      return score + Math.max(0, 100 - distance)
-    }, 0)
-  }, [])
-
   // Handle game finish
   const handleGameFinish = useCallback(async (
-    category: string,
-    guesses: Guess[]
+    _category: string,
+    _guesses: Guess[]
   ) => {
-    if (!userId) return
-
-    const score = calculateScore(guesses)
-    const now = new Date()
-    const lastPlayDate = stats?.last_played_at 
-      ? new Date(stats.last_played_at)
-      : null
-
-    // Check if this is a consecutive day
-    const isConsecutiveDay = lastPlayDate && 
-      now.setHours(0, 0, 0, 0) - lastPlayDate.setHours(0, 0, 0, 0) <= 86400000
-
-    // Save the play
-    const { error: playError } = await supabase
-      .from('plays')
-      .insert({
-        user_id: userId,
-        category,
-        score: score.toString(),
-        guesses
-      })
-
-    if (playError) {
-      console.error('Error saving play:', playError)
-      return
-    }
-
-    // Update stats
-    const newStats = {
-      total_plays: (stats?.total_plays || 0) + 1,
-      total_score: (stats?.total_score || 0) + score,
-      average_score: ((stats?.average_score || 0) * (stats?.total_plays || 0) + score) / ((stats?.total_plays || 0) + 1),
-      current_streak: isConsecutiveDay ? (stats?.current_streak || 0) + 1 : 1,
-      max_streak: Math.max(stats?.max_streak || 0, isConsecutiveDay ? (stats?.current_streak || 0) + 1 : 1),
-      last_played_at: now.toISOString()
-    }
-
-    const { error: statsError } = await supabase
-      .from('user_stats')
-      .update(newStats)
-      .eq('id', userId)
-
-    if (statsError) {
-      console.error('Error updating stats:', statsError)
-      return
-    }
-
-    setStats(newStats)
-    return { score, stats: newStats }
-  }, [userId, stats, calculateScore])
+    if (!userId) return false
+    return true
+  }, [userId])
 
   return {
     userId,

@@ -98,7 +98,7 @@ export function Finished({
 
         {/* Average Score Row */}
         <div className="flex gap-4 items-center">
-          <span className="text-2xl text-gray-700">Average Score: {averageScore}</span>
+          <span className="text-2xl text-gray-700">Average Score: {Math.round(averageScore)}</span>
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -120,8 +120,12 @@ export function Finished({
 
         {/* Streak Info */}
         <div className="space-y-4 pt-4 border-t border-gray-200">
-          <div className="text-xl text-gray-600">Streak: {streak} day</div>
-          <div className="text-xl text-gray-600">Max Streak: {maxStreak} days</div>
+          <div className="text-xl text-gray-600">
+            Current Streak: {streak} {streak === 1 ? 'day' : 'days'}
+          </div>
+          <div className="text-xl text-gray-600">
+            Max Streak: {maxStreak} {maxStreak === 1 ? 'day' : 'days'}
+          </div>
         </div>
 
         {/* Progress Bars */}

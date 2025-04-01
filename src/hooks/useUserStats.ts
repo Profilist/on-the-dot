@@ -10,11 +10,13 @@ export function useUserStats(userId: string | null) {
   const [categoryStats, setCategoryStats] = useState<{ 
     averageScore: number,
     scoreDistribution: number[],
-    totalPlays: number 
+    totalPlays: number,
+    totalScore: number
   }>({ 
     averageScore: 0,
     scoreDistribution: [],
-    totalPlays: 0
+    totalPlays: 0,
+    totalScore: 0
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +44,9 @@ export function useUserStats(userId: string | null) {
           current_streak: 0,
           max_streak: 0,
           total_plays: 0,
-          last_played_at: null
+          total_score: 0,
+          average_score: 0,
+          last_played_at: new Date().toISOString()
         })
         .select()
         .single()
@@ -81,13 +85,15 @@ export function useUserStats(userId: string | null) {
       setCategoryStats({ 
         averageScore: average,
         scoreDistribution: scores,
-        totalPlays: scores.length
+        totalPlays: scores.length,
+        totalScore: totalScore
       })
     } else {
       setCategoryStats({ 
         averageScore: 0,
         scoreDistribution: [],
-        totalPlays: 0
+        totalPlays: 0,
+        totalScore: 0
       })
     }
   }, [])
@@ -97,7 +103,7 @@ export function useUserStats(userId: string | null) {
     category: string,
     guesses: Guess[]
   ) => {
-    if (!userId || !stats) return
+    if (!userId) return
 
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -108,59 +114,77 @@ export function useUserStats(userId: string | null) {
       .insert({
         user_id: userId,
         category,
-        score,
+        score: score.toString(),
         guesses,
-        played_at: now.toISOString()
+        created_at: now.toISOString()
       })
 
     if (playError) {
+      console.error('Error saving play:', playError)
       setError(playError.message)
       return
     }
 
-    // Calculate streak
+    // Calculate streak and stats
     let newStreak = 1
-    let newMaxStreak = stats.max_streak
+    let newMaxStreak = stats?.max_streak || 0
+    let totalPlays = (stats?.total_plays || 0) + 1
+    let totalScore = (stats?.total_score || 0) + score
 
-    if (stats.last_played_at) {
+    if (stats?.last_played_at) {
       const lastPlayed = new Date(stats.last_played_at)
       const lastPlayedDay = new Date(lastPlayed.getFullYear(), lastPlayed.getMonth(), lastPlayed.getDate())
       const dayDiff = Math.floor((today.getTime() - lastPlayedDay.getTime()) / (1000 * 60 * 60 * 24))
 
       if (dayDiff === 1) {
         // Consecutive day
-        newStreak = stats.current_streak + 1
-        newMaxStreak = Math.max(newStreak, stats.max_streak)
+        newStreak = (stats?.current_streak || 0) + 1
+        newMaxStreak = Math.max(newStreak, stats?.max_streak || 0)
       } else if (dayDiff === 0) {
         // Same day, keep current streak
-        newStreak = stats.current_streak
+        newStreak = stats?.current_streak || 0
       }
       // If dayDiff > 1, streak resets to 1 (already set above)
     }
 
     // Update user stats
-    const { data: updatedStats, error: statsError } = await supabase
+    const newStats = {
+      id: userId,
+      current_streak: newStreak,
+      max_streak: newMaxStreak,
+      total_plays: totalPlays,
+      total_score: totalScore,
+      average_score: totalScore / totalPlays,
+      last_played_at: now.toISOString()
+    }
+
+    // Create or update user stats
+    const { error: statsError } = await supabase
       .from('user_stats')
-      .update({
-        current_streak: newStreak,
-        max_streak: newMaxStreak,
-        total_plays: stats.total_plays + 1,
-        last_played_at: now.toISOString()
-      })
-      .eq('id', userId)
-      .select()
-      .single()
+      .upsert(newStats)
 
     if (statsError) {
+      console.error('Error updating stats:', statsError)
       setError(statsError.message)
       return
     }
 
-    setStats(updatedStats)
-    
-    // Refresh category stats
-    await loadCategoryStats(category)
-  }, [userId, stats, loadCategoryStats])
+    // Update local state with new stats
+    setStats({
+      ...newStats,
+      created_at: stats?.created_at || now.toISOString()
+    })
+
+    // Also update category stats
+    setCategoryStats(prev => ({
+      ...prev,
+      totalPlays: prev.totalPlays + 1,
+      totalScore: prev.totalScore + score,
+      averageScore: (prev.totalScore + score) / (prev.totalPlays + 1),
+      scoreDistribution: [...prev.scoreDistribution, score]
+    }))
+
+  }, [userId, stats])
 
   return { stats, categoryStats, isLoading, error, loadStats, loadCategoryStats, savePlay }
 }
