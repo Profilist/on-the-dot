@@ -3,7 +3,7 @@ import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
-import { useSupabase } from '../../hooks/useSupabase'
+import { useSupabase, CATEGORY_DISPLAY_NAMES } from '../../hooks/useSupabase'
 import { useGame } from '../../hooks/useGame'
 import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
@@ -37,7 +37,7 @@ export function GamePage() {
     guesses: [],
     remainingGuesses: 4,
     isGameOver: false,
-    currentCategory: "movies"
+    currentCategory: "grossing movies"
   })
   const userId = useAnonymousId()
   const { savePlay, stats, categoryStats, loadCategoryStats } = useUserStats(userId)
@@ -98,9 +98,9 @@ export function GamePage() {
       // If game is over, save the results
       if (isGameOver) {
         const score = calculateScore(newGuesses)
-        handleGameFinish(gameState.currentCategory, newGuesses).then(result => {
+        handleGameFinish(CATEGORY_DISPLAY_NAMES[gameState.currentCategory], newGuesses).then(result => {
           if (result) {
-            savePlay(score, gameState.currentCategory, newGuesses)
+            savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], newGuesses)
           }
         })
       }

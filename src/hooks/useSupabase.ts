@@ -5,6 +5,7 @@ import { normalizeTitle } from '../utils/titleMatcher'
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
 const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'athletes', 'most popular boy names', 'most popular girl names'] as const 
+// const AVAILABLE_CATEGORIES = ['most popular girl names'] as const 
 
 export type Category = typeof AVAILABLE_CATEGORIES[number]
 
@@ -19,6 +20,16 @@ interface DbItem {
   rank: number
   title: string
   aliases: string[]
+}
+
+export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
+  'grossing movies': 'Movies',
+  'most streamed songs': 'Songs',
+  'most followed instagram accounts': 'Instagram Accounts',
+  'most visited countries': 'Most Visited Countries',
+  'athletes': 'Athletes',
+  'most popular boy names': 'Boy Names',
+  'most popular girl names': 'Girl Names'
 }
 
 export function useSupabase() {
@@ -36,7 +47,7 @@ export function useSupabase() {
         .from(category)
         .select('rank, title, aliases')
         .order('rank', { ascending: true })
-        .limit(100)
+        .limit(101)
 
       if (error) {
         if (error.message.includes('API key') && retryCount < MAX_RETRIES) {

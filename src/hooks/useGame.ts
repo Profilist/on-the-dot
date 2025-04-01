@@ -11,6 +11,7 @@ export function useGame() {
     current_streak: number
     max_streak: number
     total_plays: number
+    total_score: number
     average_score: number
     last_played_at?: string
   } | null>(null)
@@ -111,6 +112,7 @@ export function useGame() {
     // Update stats
     const newStats = {
       total_plays: (stats?.total_plays || 0) + 1,
+      total_score: (stats?.total_score || 0) + score,
       average_score: ((stats?.average_score || 0) * (stats?.total_plays || 0) + score) / ((stats?.total_plays || 0) + 1),
       current_streak: isConsecutiveDay ? (stats?.current_streak || 0) + 1 : 1,
       max_streak: Math.max(stats?.max_streak || 0, isConsecutiveDay ? (stats?.current_streak || 0) + 1 : 1),
