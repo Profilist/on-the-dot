@@ -12,6 +12,7 @@ import { Finished } from './components/Finished'
 import { DottedBackground } from '../../components/DottedBackground'
 import { useAnonymousId } from '../../hooks/useAnonymousId'
 import { useUserStats } from '../../hooks/useUserStats'
+import { useGuessStats } from '../../hooks/useGuessStats'
 import { Category } from '../../hooks/useSupabase'
 
 function calculateScore(guesses: Guess[]): number {
@@ -32,6 +33,9 @@ interface GameState {
 export function GamePage() {
   const { checkRank, getRandomCategory } = useSupabase()
   const { initializeUser } = useGame()
+  const userId = useAnonymousId()
+  const { savePlay, loadStats, loadCategoryStats, stats, categoryStats } = useUserStats(userId)
+  const { getGuessCount } = useGuessStats()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
@@ -40,12 +44,11 @@ export function GamePage() {
   })
   const [showResults, setShowResults] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
-  const userId = useAnonymousId()
-  const { savePlay, stats, categoryStats, loadCategoryStats, loadStats } = useUserStats(userId)
+  const [isLoading, setIsLoading] = useState(false)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
-  // Initialize user and load stats
+  // Initialize user on mount
   useEffect(() => {
     const newUserId = initializeUser()
     if (newUserId) {
@@ -58,6 +61,12 @@ export function GamePage() {
     loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
   }, [gameState.currentCategory, loadCategoryStats])
 
+  // Set random category on mount
+  useEffect(() => {
+    const category = getRandomCategory()
+    setGameState(prev => ({ ...prev, currentCategory: category }))
+  }, [getRandomCategory])
+
   // Update stats from user_stats
   useEffect(() => {
     if (stats) {
@@ -66,55 +75,89 @@ export function GamePage() {
     }
   }, [stats])
 
-  // Initialize game with random category
-  useEffect(() => {
-    const category = getRandomCategory()
-    setGameState(prev => ({ ...prev, currentCategory: category }))
-  }, [getRandomCategory])
-
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    const previousGuesses = gameState.guesses.map(g => g.originalTitle)
-    const result = await checkRank(guess, gameState.currentCategory, previousGuesses)
+    setIsLoading(true)
+    const result = await checkRank(guess, gameState.currentCategory, gameState.guesses.map(g => g.originalTitle))
     
-    const newGuess: Guess = {
-      item: guess,
-      originalTitle: result.title,
-      rank: result.isMatch ? result.rank : undefined,
-      isInTop100: result.isMatch
-    }
-
-    setGameState(prev => {
-      const newGuesses = [...prev.guesses, newGuess]
-      const newRemainingGuesses = prev.remainingGuesses - 1
-      const isGameOver = newRemainingGuesses === 0
-
-      if (isGameOver) {
-        setIsExiting(true)
-        // Wait for exit animations to complete before showing results
-        setTimeout(() => {
-          setShowResults(true)
-        }, 1200) // Slightly longer than exit animation duration
+    if (result.isMatch) {
+      // Get current guess count before creating the guess
+      const currentCount = await getGuessCount(result.title, gameState.currentCategory)
+      
+      const newGuess: Guess = {
+        item: guess,
+        originalTitle: result.title,
+        rank: result.rank,
+        isInTop100: true,
+        guessCount: currentCount + 1, // Add 1 to current count since we're about to increment it
+        aliases: result.aliases
       }
 
-      return {
-        ...prev,
-        guesses: newGuesses,
-        remainingGuesses: newRemainingGuesses,
-        isGameOver
-      }
-    })
+      setGameState(prev => {
+        const newGuesses = [...prev.guesses, newGuess]
+        const newRemainingGuesses = prev.remainingGuesses - 1
+        const isGameOver = newRemainingGuesses === 0
 
-    // If game is over, save the results after state update
-    if (gameState.remainingGuesses === 1) { 
-      const score = calculateScore([...gameState.guesses, newGuess])
-      savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [...gameState.guesses, newGuess]).then(() => {
-        // Reload stats and category stats after saving to ensure we have latest data
-        loadStats()
-        loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+        if (isGameOver) {
+          setIsExiting(true)
+          // Wait for exit animations to complete before showing results
+          setTimeout(() => {
+            setShowResults(true)
+          }, 1200) // Slightly longer than exit animation duration
+        }
+
+        // Save play if game is over
+        if (isGameOver) {
+          const score = calculateScore(newGuesses)
+          savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], newGuesses).then(() => {
+            loadStats()
+            loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+          })
+        } else {
+          // Just increment guess count for correct guesses during gameplay
+          savePlay(0, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [newGuess])
+        }
+
+        return {
+          ...prev,
+          guesses: newGuesses,
+          remainingGuesses: newRemainingGuesses,
+          isGameOver
+        }
+      })
+
+    } else {
+      const newGuess: Guess = {
+        item: guess,
+        originalTitle: guess,
+        rank: undefined,
+        isInTop100: false,
+        guessCount: 0,
+        aliases: []
+      }
+      setGameState(prev => {
+        const newGuesses = [...prev.guesses, newGuess]
+        const newRemainingGuesses = prev.remainingGuesses - 1
+        const isGameOver = newRemainingGuesses === 0
+
+        if (isGameOver) {
+          setIsExiting(true)
+          // Wait for exit animations to complete before showing results
+          setTimeout(() => {
+            setShowResults(true)
+          }, 1200) // Slightly longer than exit animation duration
+        }
+
+        return {
+          ...prev,
+          guesses: newGuesses,
+          remainingGuesses: newRemainingGuesses,
+          isGameOver
+        }
       })
     }
+    setIsLoading(false)
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
 
   const handlePlayAgain = useCallback(() => {
@@ -142,7 +185,7 @@ export function GamePage() {
       ...gameState.guesses.map((guess, index) => {
         const indicator = guess.isInTop100 ? '✅' : '❌'
         const rank = guess.rank ? `#${guess.rank}` : 'not in top 100'
-        return `${index + 1}. ${guess.originalTitle} ${indicator} ${rank}`
+        return `${index + 1}. ${guess.item} ${indicator} ${rank}`
       }),
       '',
       `🎮 Play at: https://www.playonthedot.com`
@@ -228,7 +271,7 @@ export function GamePage() {
                 >
                   <GuessInput 
                     onSubmit={handleGuess}
-                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
+                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0 || isLoading}
                   />
                 </motion.div>
               </div>

@@ -1,11 +1,12 @@
 import type { Category } from '../hooks/useSupabase'
 
 export interface Guess {
-  item: string          // User's guess
-  originalTitle: string // Original title from database
+  item: string
+  originalTitle: string
   rank?: number
   isInTop100: boolean
-  guessCount?: number   // Number of times this item has been guessed
+  guessCount: number
+  aliases: string[]
 }
 
 export interface GameState {
@@ -13,4 +14,4 @@ export interface GameState {
   remainingGuesses: number
   isGameOver: boolean
   currentCategory: Category
-} 
+}
