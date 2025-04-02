@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Guess } from '../types/game'
 import type { Database } from '../types/supabase'
-import { useGuessStats } from './useGuessStats'
+import type { Category } from './useSupabase'
 
 type UserStats = Database['public']['Tables']['user_stats']['Row']
 
@@ -19,7 +19,6 @@ export function useUserStats(userId: string | null) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { incrementGuessCount } = useGuessStats()
 
   const loadStats = useCallback(async () => {
     if (!userId) return
@@ -62,7 +61,7 @@ export function useUserStats(userId: string | null) {
     setIsLoading(false)
   }, [userId])
 
-  const loadCategoryStats = useCallback(async (category: string) => {
+  const loadCategoryStats = useCallback(async (category: Category) => {
     if (!category) return
 
     const { data, error } = await supabase
@@ -97,7 +96,7 @@ export function useUserStats(userId: string | null) {
 
   const savePlay = useCallback(async (
     score: number,
-    category: string,
+    category: Category,
     guesses: Guess[]
   ) => {
     if (!userId) return
@@ -106,10 +105,6 @@ export function useUserStats(userId: string | null) {
     setError(null)
 
     try {
-      // Increment guess count for each correct guess
-      const correctGuesses = guesses.filter(g => g.isInTop100)
-      await Promise.all(correctGuesses.map(g => incrementGuessCount(g.originalTitle, category as any)))
-
       // Save the play
       const now = new Date()
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())

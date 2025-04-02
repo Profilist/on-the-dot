@@ -3,7 +3,7 @@ import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
-import { useSupabase, CATEGORY_DISPLAY_NAMES } from '../../hooks/useSupabase'
+import { useSupabase } from '../../hooks/useSupabase'
 import { useGame } from '../../hooks/useGame'
 import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
@@ -58,7 +58,7 @@ export function GamePage() {
 
   // Load category stats when category changes
   useEffect(() => {
-    loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+    loadCategoryStats(gameState.currentCategory)
   }, [gameState.currentCategory, loadCategoryStats])
 
   // Set random category on mount
@@ -113,13 +113,13 @@ export function GamePage() {
         // Save play if game is over
         if (isGameOver) {
           const score = calculateScore(newGuesses)
-          savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], newGuesses).then(() => {
+          savePlay(score, gameState.currentCategory, newGuesses).then(() => {
             loadStats()
-            loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+            loadCategoryStats(gameState.currentCategory)
           })
         } else {
           // Just increment guess count for correct guesses during gameplay
-          savePlay(0, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [newGuess])
+          savePlay(0, gameState.currentCategory, [newGuess])
         }
 
         return {
