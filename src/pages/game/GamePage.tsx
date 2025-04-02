@@ -35,7 +35,7 @@ export function GamePage() {
   const { initializeUser } = useGame()
   const userId = useAnonymousId()
   const { savePlay, loadStats, loadCategoryStats, stats, categoryStats } = useUserStats(userId)
-  const { getGuessCount } = useGuessStats()
+  const { getGuessCount, incrementGuessCount } = useGuessStats()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
@@ -85,12 +85,15 @@ export function GamePage() {
       // Get current guess count before creating the guess
       const currentCount = await getGuessCount(result.title, gameState.currentCategory)
       
+      // Increment the guess count in the database
+      await incrementGuessCount(result.title, gameState.currentCategory)
+      
       const newGuess: Guess = {
         item: guess,
         originalTitle: result.title,
         rank: result.rank,
         isInTop100: true,
-        guessCount: currentCount + 1, // Add 1 to current count since we're about to increment it
+        guessCount: currentCount + 1,
         aliases: result.aliases
       }
 

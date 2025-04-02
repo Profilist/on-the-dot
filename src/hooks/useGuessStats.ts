@@ -38,30 +38,15 @@ export function useGuessStats() {
     setError(null)
 
     try {
-      // First try to update existing record
-      const { data: updateData, error: updateError } = await supabase.rpc('increment_guess_count', {
+      const { error } = await supabase.rpc('increment_guess_count', {
         p_title: title,
-        p_category: category
+        p_category: category,
+        p_created_at: new Date().toISOString(),
+        p_updated_at: new Date().toISOString()
       })
 
-      // If the record doesn't exist, create it
-      if (updateError?.code === 'PGRST116' || (!updateData && !updateError)) {
-        console.log('No existing record found, creating new one for:', title, category)
-        const { error: insertError } = await supabase
-          .from('guess_counts')
-          .insert({ 
-            title, 
-            category, 
-            count: 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-        if (insertError) {
-          throw insertError
-        }
-      } else if (updateError) {
-        throw updateError
+      if (error) {
+        throw error
       }
     } catch (err: any) {
       console.error('Error in incrementGuessCount:', err)

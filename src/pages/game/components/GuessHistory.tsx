@@ -8,12 +8,13 @@ interface GuessHistoryProps {
 
 export function GuessHistory({ guesses }: GuessHistoryProps) {
   const isTopRank = (rank: number) => rank >= 90 && rank <= 100
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
     <div className="space-y-4">
       <AnimatePresence>
         {guesses.map((guess, index) => {
-          const [isHovered, setIsHovered] = useState(false)
+          const isHovered = hoveredIndex === index
           
           return (
             <motion.div
@@ -23,8 +24,8 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
               whileHover={{ scale: 1.02 }}
-              onHoverStart={() => setIsHovered(true)}
-              onHoverEnd={() => setIsHovered(false)}
+              onHoverStart={() => setHoveredIndex(index)}
+              onHoverEnd={() => setHoveredIndex(null)}
               className={`w-full h-16 rounded-full flex items-center relative overflow-hidden
                 ${guess.isInTop100 
                   ? 'bg-black text-white' 
