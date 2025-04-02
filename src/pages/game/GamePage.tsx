@@ -240,14 +240,14 @@ export function GamePage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                  transition={{ duration: 0.6, delay: 0 }}
                 >
                   {/* Guesses Remaining */}
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="mt-6 mb-8 flex gap-2 items-center justify-center bg-white/100"
                   >
                     <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
@@ -268,7 +268,7 @@ export function GamePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="w-full max-w-2xl space-y-4 bg-white/100"
                   >
                     <GuessHistory guesses={gameState.guesses} />
@@ -279,7 +279,7 @@ export function GamePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="w-full max-w-2xl mt-8 bg-white/100"
                   >
                     <ProgressBar 

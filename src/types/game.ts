@@ -5,6 +5,7 @@ export interface Guess {
   originalTitle: string // Original title from database
   rank?: number
   isInTop100: boolean
+  guessCount?: number   // Number of times this item has been guessed
 }
 
 export interface GameState {
