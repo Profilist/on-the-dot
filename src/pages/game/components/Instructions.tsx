@@ -71,10 +71,9 @@ export function Instructions({ category }: InstructionsProps) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.9 }}
-          className="flex items-center gap-2"
         >
-          <p>Scores of 90 and above are</p>
-          <span className="font-bold">ON THE DOT</span>
+          <p>Scores of 90 and above are{" "}
+          <span className="font-bold">ON THE DOT</span>{" "}
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -90,8 +89,19 @@ export function Instructions({ category }: InstructionsProps) {
               stiffness: 500,
               delay: 1.1
             }}
-            className="w-4 h-4 bg-[#FF2C2C] rounded-full" 
+            style={{ 
+              display: "inline-block", 
+              width: "16px", 
+              height: "16px", 
+              backgroundColor: "#FF2C2C", 
+              borderRadius: "9999px", 
+              verticalAlign: "middle",
+              marginLeft: "4px", 
+              position: "relative",
+              top: "-2px"
+            }}
           />
+          </p>
         </motion.div>
       </motion.div>
 

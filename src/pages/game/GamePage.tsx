@@ -267,7 +267,7 @@ export function GamePage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.2 }}
-                  className="text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
+                  className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
                 >
                   Top 100 {gameState.currentCategory}
                 </motion.h1>

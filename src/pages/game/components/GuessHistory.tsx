@@ -44,22 +44,24 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
                 )}
               </div>
               
-              <div className="relative flex-grow overflow-hidden h-full">
+              <div className="relative flex-grow overflow-hidden h-full flex items-center">
                 <motion.span 
                   initial={{ y: 0, opacity: 1 }}
                   animate={{ y: isHovered ? -30 : 0, opacity: isHovered ? 0 : 1 }}
                   transition={{ duration: 0.3 }}
-                  className="text-2xl absolute inset-0 flex items-center"
+                  className="text-xl md:text-2xl absolute inset-0 flex items-center truncate"
                 >
-                  {guess.originalTitle}
+                  <div className="overflow-hidden whitespace-nowrap text-ellipsis">
+    {guess.originalTitle}
+  </div>
                 </motion.span>
                 <motion.span
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: isHovered ? 0 : 30, opacity: isHovered ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-2xl absolute inset-0 flex items-center"
+                  className="text-xl md:text-2xl absolute inset-0 flex items-center truncate"
                 >
-                  {`This has been guessed ${guess.guessCount} ${guess.guessCount === 1 ? 'time' : 'times'}!`}
+                  {`${guess.guessCount === 1 ? "Congrats, you're the first!" : `${guess.guessCount} players have guessed this!`}`}
                 </motion.span>
               </div>
 
@@ -67,7 +69,7 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
-                className={`ml-auto mr-8 text-2xl font-mono text-[#FF2C2C]`}
+                className={`ml-8 w-16 text-2xl font-mono text-[#FF2C2C]`}
               >
                 {guess.isInTop100 ? `#${guess.rank}` : 'X'}
               </motion.span>
