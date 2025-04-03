@@ -10,6 +10,14 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
   const isTopRank = (rank: number) => rank >= 90 && rank <= 100
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
+  const handleInteractionStart = (index: number) => {
+    setHoveredIndex(index)
+  }
+
+  const handleInteractionEnd = () => {
+    setHoveredIndex(null)
+  }
+
   return (
     <div className="space-y-4">
       <AnimatePresence>
@@ -24,15 +32,18 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
               whileHover={{ scale: 1.02 }}
-              onHoverStart={() => setHoveredIndex(index)}
-              onHoverEnd={() => setHoveredIndex(null)}
+              onHoverStart={() => handleInteractionStart(index)}
+              onHoverEnd={handleInteractionEnd}
+              onTouchStart={() => handleInteractionStart(index)}
+              onTouchEnd={handleInteractionEnd}
+              onTouchCancel={handleInteractionEnd}
               className={`w-full h-16 rounded-full flex items-center relative overflow-hidden
                 ${guess.isInTop100 
                   ? 'bg-black text-white' 
                   : 'bg-white border-2 border-black'
-                }`}
+                } touch-manipulation`}
             >
-              {/* Container for red circle indicator with fixed width */}
+
               <div className="w-10 ml-6 flex items-center">
                 {guess.rank && isTopRank(guess.rank) && (
                   <motion.div 
@@ -52,8 +63,8 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
                   className="text-xl md:text-2xl absolute inset-0 flex items-center truncate"
                 >
                   <div className="overflow-hidden whitespace-nowrap text-ellipsis">
-    {guess.originalTitle}
-  </div>
+                    {guess.originalTitle}
+                  </div>
                 </motion.span>
                 <motion.span
                   initial={{ y: 30, opacity: 0 }}
@@ -61,7 +72,19 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
                   transition={{ duration: 0.3 }}
                   className="text-xl md:text-2xl absolute inset-0 flex items-center truncate"
                 >
-                  {`${guess.guessCount === 1 ? "Congrats, you're the first!" : `${guess.guessCount} players have guessed this!`}`}
+                  <div className="overflow-hidden whitespace-nowrap text-ellipsis">
+                    {guess.guessCount === 1 ? (
+                      <span>
+                        <span className="md:hidden">First guess!</span>
+                        <span className="hidden md:inline">Congrats, you're the first!</span>
+                      </span>
+                    ) : (
+                      <span>
+                        <span className="md:hidden">{guess.guessCount} past guesses!</span>
+                        <span className="hidden md:inline">{guess.guessCount} players have guessed this!</span>
+                      </span>
+                    )}
+                  </div>
                 </motion.span>
               </div>
 

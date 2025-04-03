@@ -66,8 +66,13 @@ export function useSupabase() {
 
       const normalizedGuess = normalizeTitle(title)
       
-      // Find all items that match the guess through their aliases
-      const matches = data.filter((item: DbItem) => 
+      // First check for exact title matches
+      const exactMatches = data.filter((item: DbItem) => 
+        normalizeTitle(item.title) === normalizedGuess
+      )
+
+      // Then check aliases only if no exact matches found
+      const matches = exactMatches.length > 0 ? exactMatches : data.filter((item: DbItem) => 
         item.aliases.some(alias => normalizeTitle(alias) === normalizedGuess)
       )
 
