@@ -71,37 +71,39 @@ export function Instructions({ category }: InstructionsProps) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.9 }}
+          className="flex items-center"
         >
-          <p>Scores of 90 and above are{" "}
-          <span className="font-bold">ON THE DOT</span>{" "}
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ 
-              scale: [1, 1.1, 1],
-              transition: {
-                duration: 1,
-                repeat: Infinity
-              }
-            }}
-            transition={{ 
-              type: "spring",
-              stiffness: 500,
-              delay: 1.1
-            }}
-            style={{ 
-              display: "inline-block", 
-              width: "16px", 
-              height: "16px", 
-              backgroundColor: "#FF2C2C", 
-              borderRadius: "9999px", 
-              verticalAlign: "middle",
-              marginLeft: "4px", 
-              position: "relative",
-              top: "-2px"
-            }}
-          />
-          </p>
+          <span>
+            Scores of 90 and above are{" "}
+            <span className="font-bold">ON THE DOT</span>{" "}
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              whileHover={{ 
+                scale: [1, 1.1, 1],
+                transition: {
+                  duration: 1,
+                  repeat: Infinity
+                }
+              }}
+              transition={{ 
+                type: "spring",
+                stiffness: 500,
+                delay: 1.1
+              }}
+              style={{ 
+                display: "inline-block", 
+                width: "16px", 
+                height: "16px", 
+                backgroundColor: "#FF2C2C", 
+                borderRadius: "9999px", 
+                verticalAlign: "middle",
+                marginLeft: "4px", 
+                position: "relative",
+                top: "-2px"
+              }}
+            />
+          </span>
         </motion.div>
       </motion.div>
 
