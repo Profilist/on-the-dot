@@ -66,23 +66,24 @@ export function useUserStats(userId: string | null) {
 
     const { data, error } = await supabase
       .from('plays')
-      .select('score')
+      .select('score, created_at')
       .eq('category', category)
       .lt('created_at', new Date().toISOString())
-      .order('score', { ascending: true })
+      .order('created_at', { ascending: false })
 
     if (error) {
       setError(error.message)
       return
     }
 
-    if (data && data.length > 0) {
-      const scores = data.map(play => play.score)
-      const totalScore = scores.reduce((sum, score) => sum + score, 0)
+    if (data && data.length > 1) {
+      // Exclude the most recent play (index 0) from the calculations
+      const previousScores = data.slice(1).map(play => play.score)
+      const totalScore = previousScores.reduce((sum, score) => sum + score, 0)
       
       setCategoryStats({ 
-        scoreDistribution: scores,
-        totalPlays: scores.length,
+        scoreDistribution: previousScores,
+        totalPlays: previousScores.length,
         totalScore: totalScore
       })
     } else {

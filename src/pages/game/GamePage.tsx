@@ -44,7 +44,6 @@ export function GamePage() {
   })
   const [showResults, setShowResults] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
@@ -78,14 +77,12 @@ export function GamePage() {
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    setIsLoading(true)
     const result = await checkRank(guess, gameState.currentCategory, gameState.guesses.map(g => g.originalTitle))
-    
+
     if (result.isMatch) {
       // Get current guess count before creating the guess
       const currentCount = await getGuessCount(result.title, gameState.currentCategory)
       
-      // Increment the guess count in the database
       await incrementGuessCount(result.title, gameState.currentCategory)
       
       const newGuess: Guess = {
@@ -110,18 +107,6 @@ export function GamePage() {
           }, 1200) // Slightly longer than exit animation duration
         }
 
-        // Save play if game is over
-        if (isGameOver) {
-          const score = calculateScore(newGuesses)
-          savePlay(score, gameState.currentCategory, newGuesses).then(() => {
-            loadStats()
-            loadCategoryStats(gameState.currentCategory)
-          })
-        } else {
-          // Just increment guess count for correct guesses during gameplay
-          savePlay(0, gameState.currentCategory, [newGuess])
-        }
-
         return {
           ...prev,
           guesses: newGuesses,
@@ -130,13 +115,27 @@ export function GamePage() {
         }
       })
 
+      // Save play if game is over - moved outside setState to prevent double save
+      if (gameState.remainingGuesses === 1) { // This is the last guess
+        const score = calculateScore([...gameState.guesses, newGuess])
+        savePlay(score, gameState.currentCategory, [...gameState.guesses, newGuess]).then(() => {
+          loadStats()
+          loadCategoryStats(gameState.currentCategory)
+        })
+      }
+
     } else {
+      // Get current guess count for incorrect guess
+      const currentCount = await getGuessCount(guess.toLowerCase(), gameState.currentCategory)
+      
+      await incrementGuessCount(guess.toLowerCase(), gameState.currentCategory)
+
       const newGuess: Guess = {
         item: guess,
         originalTitle: guess,
         rank: undefined,
         isInTop100: false,
-        guessCount: 0,
+        guessCount: currentCount + 1,
         aliases: []
       }
       setGameState(prev => {
@@ -159,8 +158,17 @@ export function GamePage() {
           isGameOver
         }
       })
+
+      // Save play if game is over - moved outside setState to prevent double save
+      if (gameState.remainingGuesses === 1) { // This is the last guess
+        const score = calculateScore([...gameState.guesses, newGuess])
+        savePlay(score, gameState.currentCategory, [...gameState.guesses, newGuess]).then(() => {
+          loadStats()
+          loadCategoryStats(gameState.currentCategory)
+        })
+      }
     }
-    setIsLoading(false)
+
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
 
   const handlePlayAgain = useCallback(() => {
@@ -274,7 +282,7 @@ export function GamePage() {
                 >
                   <GuessInput 
                     onSubmit={handleGuess}
-                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0 || isLoading}
+                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
                   />
                 </motion.div>
               </div>
