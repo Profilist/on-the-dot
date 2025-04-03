@@ -213,6 +213,18 @@ export function GamePage() {
       })
   }, [gameState.guesses, gameState.currentCategory])
 
+  const handleRefreshCategory = useCallback(() => {
+    if (!gameState.isGameOver) {
+      const category = getRandomCategory()
+      setGameState({
+        guesses: [],
+        remainingGuesses: 4,
+        isGameOver: false,
+        currentCategory: category
+      })
+    }
+  }, [gameState.isGameOver, getRandomCategory])
+
   const showInstructions = gameState.guesses.length === 0
 
   return (
@@ -262,15 +274,23 @@ export function GamePage() {
                 </motion.div>
 
                 {/* Category Title */}
-                <motion.h1 
+                <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.2 }}
-                  className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
+                  className="flex items-center justify-center mb-4 space-x-4"
                 >
-                  Top 100 {gameState.currentCategory}
-                </motion.h1>
+                  <button 
+                    onClick={handleRefreshCategory}
+                    disabled={gameState.isGameOver}
+                    className="cursor-pointer"
+                  >
+                  <h1 className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider text-left mb-12 bg-white/100">
+                    Top 100 {gameState.currentCategory}
+                  </h1>
+                </button>
+                </motion.div>
 
                 {/* Input Section */}
                 <motion.div
