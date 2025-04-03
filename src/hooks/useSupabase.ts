@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { supabase, isSupabaseError } from '../lib/supabase'
 import { normalizeTitle } from '../utils/titleMatcher'
+import { useGuessStats } from '../hooks/useGuessStats'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
@@ -14,6 +15,7 @@ interface RankResult {
   title: string
   aliases: string[]
   isMatch: boolean
+  guessCount: number
 }
 
 interface DbItem {
@@ -37,6 +39,7 @@ export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
 export function useSupabase() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { getGuessCount } = useGuessStats()
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -59,7 +62,7 @@ export function useSupabase() {
         throw error
       }
 
-      if (!data) return { rank: 0, title: title, aliases: [], isMatch: false }
+      if (!data) return { rank: 0, title: title, aliases: [], isMatch: false, guessCount: 0 }
 
       const normalizedGuess = normalizeTitle(title)
       
@@ -69,7 +72,7 @@ export function useSupabase() {
       )
 
       if (matches.length === 0) {
-        return { rank: 0, title: title, aliases: [], isMatch: false }
+        return { rank: 0, title: title, aliases: [], isMatch: false, guessCount: 0 }
       }
 
       // Filter out previously guessed titles
@@ -81,16 +84,18 @@ export function useSupabase() {
 
       // If no unguessed matches, return as failed guess
       if (unguessedMatches.length === 0) {
-        return { rank: 0, title: title, aliases: [], isMatch: false }
+        return { rank: 0, title: title, aliases: [], isMatch: false, guessCount: 0 }
       }
 
-      // Return the highest ranked (lowest number) unguessed match
+      // Return the highest ranked (lowest number) unguessed match with guess count
       const match = unguessedMatches[0]
+      const guessCount = await getGuessCount(match.title, category)
       return { 
         rank: match.rank, 
         title: match.title,
         aliases: match.aliases,
-        isMatch: true
+        isMatch: true,
+        guessCount
       }
     } catch (err) {
       if (isSupabaseError(err)) {
@@ -104,7 +109,7 @@ export function useSupabase() {
         setError('An unexpected error occurred')
         console.error('Unknown error', err)
       }
-      return { rank: 0, title: title, aliases: [], isMatch: false }
+      return { rank: 0, title: title, aliases: [], isMatch: false, guessCount: 0 }
     } finally {
       setIsLoading(false)
     }

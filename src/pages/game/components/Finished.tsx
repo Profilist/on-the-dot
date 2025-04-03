@@ -70,7 +70,7 @@ export function Finished({
         className="flex flex-col items-center gap-8"
       >
         <div className="w-12 h-12 bg-[#FF2C2C] rounded-full" />
-        <h2 className="text-6xl text-center font-tech-mono">{getMessage(score)}</h2>
+        <h2 className="text-5xl md:text-6xl text-center font-tech-mono">{getMessage(score)}</h2>
       </motion.div>
 
       {/* Stats Card */}
@@ -218,7 +218,8 @@ export function Finished({
                 exit={{ y: -20, opacity: 0 }}
                 className="flex items-center justify-center h-full"
               >
-                Share Your Results!
+                <span className="hidden sm:inline">Share Your Results!</span>
+                <img src="/copy.svg" alt="Share" className="w-5 h-5 sm:hidden" />
               </motion.div>
             )}
           </AnimatePresence>

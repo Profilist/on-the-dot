@@ -3,7 +3,7 @@ import { GuessInput } from './components/GuessInput'
 import { GuessHistory } from './components/GuessHistory'
 import { ProgressBar } from './components/ProgressBar'
 import { Footer } from '../../components/Footer'
-import { useSupabase, CATEGORY_DISPLAY_NAMES } from '../../hooks/useSupabase'
+import { useSupabase } from '../../hooks/useSupabase'
 import { useGame } from '../../hooks/useGame'
 import type { Guess } from '../../types/game'
 import { Instructions } from './components/Instructions'
@@ -12,6 +12,7 @@ import { Finished } from './components/Finished'
 import { DottedBackground } from '../../components/DottedBackground'
 import { useAnonymousId } from '../../hooks/useAnonymousId'
 import { useUserStats } from '../../hooks/useUserStats'
+import { useGuessStats } from '../../hooks/useGuessStats'
 import { Category } from '../../hooks/useSupabase'
 
 function calculateScore(guesses: Guess[]): number {
@@ -32,6 +33,9 @@ interface GameState {
 export function GamePage() {
   const { checkRank, getRandomCategory } = useSupabase()
   const { initializeUser } = useGame()
+  const userId = useAnonymousId()
+  const { savePlay, loadStats, loadCategoryStats, stats, categoryStats } = useUserStats(userId)
+  const { getGuessCount, incrementGuessCount } = useGuessStats()
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     remainingGuesses: 4,
@@ -40,12 +44,10 @@ export function GamePage() {
   })
   const [showResults, setShowResults] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
-  const userId = useAnonymousId()
-  const { savePlay, stats, categoryStats, loadCategoryStats, loadStats } = useUserStats(userId)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
-  // Initialize user and load stats
+  // Initialize user on mount
   useEffect(() => {
     const newUserId = initializeUser()
     if (newUserId) {
@@ -55,8 +57,14 @@ export function GamePage() {
 
   // Load category stats when category changes
   useEffect(() => {
-    loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+    loadCategoryStats(gameState.currentCategory)
   }, [gameState.currentCategory, loadCategoryStats])
+
+  // Set random category on mount
+  useEffect(() => {
+    const category = getRandomCategory()
+    setGameState(prev => ({ ...prev, currentCategory: category }))
+  }, [getRandomCategory])
 
   // Update stats from user_stats
   useEffect(() => {
@@ -66,55 +74,101 @@ export function GamePage() {
     }
   }, [stats])
 
-  // Initialize game with random category
-  useEffect(() => {
-    const category = getRandomCategory()
-    setGameState(prev => ({ ...prev, currentCategory: category }))
-  }, [getRandomCategory])
-
   const handleGuess = useCallback(async (guess: string) => {
     if (gameState.remainingGuesses === 0 || gameState.isGameOver) return
 
-    const previousGuesses = gameState.guesses.map(g => g.originalTitle)
-    const result = await checkRank(guess, gameState.currentCategory, previousGuesses)
-    
-    const newGuess: Guess = {
-      item: guess,
-      originalTitle: result.title,
-      rank: result.isMatch ? result.rank : undefined,
-      isInTop100: result.isMatch
-    }
+    const result = await checkRank(guess, gameState.currentCategory, gameState.guesses.map(g => g.originalTitle))
 
-    setGameState(prev => {
-      const newGuesses = [...prev.guesses, newGuess]
-      const newRemainingGuesses = prev.remainingGuesses - 1
-      const isGameOver = newRemainingGuesses === 0
-
-      if (isGameOver) {
-        setIsExiting(true)
-        // Wait for exit animations to complete before showing results
-        setTimeout(() => {
-          setShowResults(true)
-        }, 1200) // Slightly longer than exit animation duration
+    if (result.isMatch) {
+      // Get current guess count before creating the guess
+      const currentCount = await getGuessCount(result.title, gameState.currentCategory)
+      
+      await incrementGuessCount(result.title, gameState.currentCategory)
+      
+      const newGuess: Guess = {
+        item: guess,
+        originalTitle: result.title,
+        rank: result.rank,
+        isInTop100: true,
+        guessCount: currentCount + 1,
+        aliases: result.aliases
       }
 
-      return {
-        ...prev,
-        guesses: newGuesses,
-        remainingGuesses: newRemainingGuesses,
-        isGameOver
-      }
-    })
+      setGameState(prev => {
+        const newGuesses = [...prev.guesses, newGuess]
+        const newRemainingGuesses = prev.remainingGuesses - 1
+        const isGameOver = newRemainingGuesses === 0
 
-    // If game is over, save the results after state update
-    if (gameState.remainingGuesses === 1) { 
-      const score = calculateScore([...gameState.guesses, newGuess])
-      savePlay(score, CATEGORY_DISPLAY_NAMES[gameState.currentCategory], [...gameState.guesses, newGuess]).then(() => {
-        // Reload stats and category stats after saving to ensure we have latest data
-        loadStats()
-        loadCategoryStats(CATEGORY_DISPLAY_NAMES[gameState.currentCategory])
+        if (isGameOver) {
+          setIsExiting(true)
+          // Wait for exit animations to complete before showing results
+          setTimeout(() => {
+            setShowResults(true)
+          }, 1200) // Slightly longer than exit animation duration
+        }
+
+        return {
+          ...prev,
+          guesses: newGuesses,
+          remainingGuesses: newRemainingGuesses,
+          isGameOver
+        }
       })
+
+      // Save play if game is over - moved outside setState to prevent double save
+      if (gameState.remainingGuesses === 1) { // This is the last guess
+        const score = calculateScore([...gameState.guesses, newGuess])
+        savePlay(score, gameState.currentCategory, [...gameState.guesses, newGuess]).then(() => {
+          loadStats()
+          loadCategoryStats(gameState.currentCategory)
+        })
+      }
+
+    } else {
+      // Get current guess count for incorrect guess
+      const currentCount = await getGuessCount(guess.toLowerCase(), gameState.currentCategory)
+      
+      await incrementGuessCount(guess.toLowerCase(), gameState.currentCategory)
+
+      const newGuess: Guess = {
+        item: guess,
+        originalTitle: guess,
+        rank: undefined,
+        isInTop100: false,
+        guessCount: currentCount + 1,
+        aliases: []
+      }
+      setGameState(prev => {
+        const newGuesses = [...prev.guesses, newGuess]
+        const newRemainingGuesses = prev.remainingGuesses - 1
+        const isGameOver = newRemainingGuesses === 0
+
+        if (isGameOver) {
+          setIsExiting(true)
+          // Wait for exit animations to complete before showing results
+          setTimeout(() => {
+            setShowResults(true)
+          }, 1200) // Slightly longer than exit animation duration
+        }
+
+        return {
+          ...prev,
+          guesses: newGuesses,
+          remainingGuesses: newRemainingGuesses,
+          isGameOver
+        }
+      })
+
+      // Save play if game is over - moved outside setState to prevent double save
+      if (gameState.remainingGuesses === 1) { // This is the last guess
+        const score = calculateScore([...gameState.guesses, newGuess])
+        savePlay(score, gameState.currentCategory, [...gameState.guesses, newGuess]).then(() => {
+          loadStats()
+          loadCategoryStats(gameState.currentCategory)
+        })
+      }
     }
+
   }, [gameState.remainingGuesses, gameState.isGameOver, gameState.guesses, checkRank, gameState.currentCategory, savePlay])
 
   const handlePlayAgain = useCallback(() => {
@@ -142,7 +196,7 @@ export function GamePage() {
       ...gameState.guesses.map((guess, index) => {
         const indicator = guess.isInTop100 ? '✅' : '❌'
         const rank = guess.rank ? `#${guess.rank}` : 'not in top 100'
-        return `${index + 1}. ${guess.originalTitle} ${indicator} ${rank}`
+        return `${index + 1}. ${guess.item} ${indicator} ${rank}`
       }),
       '',
       `🎮 Play at: https://www.playonthedot.com`
@@ -213,7 +267,7 @@ export function GamePage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.2 }}
-                  className="text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
+                  className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider mb-12 bg-white/100"
                 >
                   Top 100 {gameState.currentCategory}
                 </motion.h1>
@@ -240,14 +294,14 @@ export function GamePage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                  transition={{ duration: 0.6, delay: 0 }}
                 >
                   {/* Guesses Remaining */}
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="mt-6 mb-8 flex gap-2 items-center justify-center bg-white/100"
                   >
                     <p className="text-base font-medium text-gray-700">Guesses Remaining:</p>
@@ -268,7 +322,7 @@ export function GamePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="w-full max-w-2xl space-y-4 bg-white/100"
                   >
                     <GuessHistory guesses={gameState.guesses} />
@@ -279,7 +333,7 @@ export function GamePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, delay: isExiting ? 0 : 0.6 }}
+                    transition={{ duration: 0.6, delay: 0 }}
                     className="w-full max-w-2xl mt-8 bg-white/100"
                   >
                     <ProgressBar 
