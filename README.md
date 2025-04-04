@@ -1,13 +1,14 @@
-ON THE DOT:
+What started as a fun game between roomates blossomed into
 
-Here's how the game works!
+**ON THE DOT**:
 
-Guess the most popular boy names in the top 100 closest to the 100th spot.
+Here's how to play →
 
-You have 4 guesses.
+- Guess the most popular boy names in the top 100 closest to the 100th spot. (4 total guesses)
+- After submitting a guess, you will see its position in the top 100.
+- Try to get #100, #99, #98, and #97 for the max score!
+- Scores of 90 and above are ON THE DOT 
 
-After submitting a guess, you will see its position in the top 100.
+Categories such as top athlete, highest grossing movies, and many more to come! We iteratively improve our game based on user analytics and feedback!
 
-Try to get #100, #99, #98, and #97 for the max score!
-
-Scores of 90 and above are ON THE DOT 
+Please message us with any feedback!
