@@ -15,7 +15,11 @@ Try it out here: https://www.playonthedot.com
 
 Please message us with any feedback!
 
-## How We Built It
+![Landing](https://i.imgur.com/8LYTWgw.png)
+![Game Screen](https://i.imgur.com/7abTXdC.png)
+![Results](https://imgur.com/FjWiOOT.png)
+
+## How We Built It 🛠️
 ### Frontend Framework
 - React 19.0.0 with TypeScript
 - Vite as the build tool and development server
@@ -27,29 +31,27 @@ Please message us with any feedback!
 - Anonymous user identification system
 - Persistent game state management
 
-## Architecture
-### Core Components
+## Architecture ✏️
 1. Game Logic (`src/pages/game/GamePage.tsx`)
    - Central game state management
    - Score calculation
    - Turn management
    - Category handling
 
-2. User Interface Components
+2. User Interface Components (`src/pages/game/components`)
    - GuessInput: Player input handling
    - GuessHistory: Track previous guesses
    - ProgressBar: Game progress visualization
    - Instructions: Game rules display
    - Finished: End-game state handling
 
-3. Custom Hooks
+3. Custom Hooks (`src/hooks`)
    - useGame: Game state management
    - useUserStats: Player statistics tracking
    - useGuessStats: Guess tracking
    - useSupabase: Database interaction
    - useAnonymousId: User identification
 
-## License
+## License 📜
 
 MIT License
-
