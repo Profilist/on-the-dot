@@ -281,15 +281,19 @@ export function GamePage() {
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.2 }}
                   className="flex items-center justify-center mb-4 space-x-4"
                 >
-                  <button 
+                  <motion.button 
                     onClick={handleRefreshCategory}
                     disabled={gameState.isGameOver}
                     className="cursor-pointer"
+                    whileHover={{ 
+                      scale: 1.01,
+                      transition: { duration: 0.2 }
+                    }}
                   >
-                  <h1 className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider text-left mb-12 bg-white/100">
-                    Top 100 {gameState.currentCategory}
-                  </h1>
-                </button>
+                    <h1 className="text-5xl md:text-6xl font-tech-mono uppercase tracking-wider text-left mb-12 bg-white/100">
+                      Top 100 {gameState.currentCategory}
+                    </h1>
+                  </motion.button>
                 </motion.div>
 
                 {/* Input Section */}
