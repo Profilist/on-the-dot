@@ -5,7 +5,7 @@ import { useGuessStats } from '../hooks/useGuessStats'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
-const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'espn athletes', 'most popular boy names', 'most popular girl names', 'companies by market cap', 'most common words'] as const 
+const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'espn athletes', 'most popular boy names', 'most popular girl names', 'companies by market cap', 'most common words', 'video games', 'most streamed artists'] as const 
 // const AVAILABLE_CATEGORIES = ['most popular girl names'] as const 
 
 export type Category = typeof AVAILABLE_CATEGORIES[number]
@@ -33,7 +33,9 @@ export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
   'most popular boy names': 'boy names',
   'most popular girl names': 'girl names',
   'companies by market cap': 'companies',
-  'most common words': 'common words'
+  'most common words': 'common words',
+  'video games': 'video games',
+  'most streamed artists': 'artists'
 }
 
 export function useSupabase() {
