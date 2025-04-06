@@ -241,7 +241,7 @@ export function GamePage() {
               transition={{ duration: 0.6 }}
               className="w-full flex justify-center items-center"
             >
-              <div className="w-full max-w-2xl">
+              <div className="w-full max-w-2xl flex justify-center items-center">
                 <Finished 
                   score={calculateScore(gameState.guesses)}
                   streak={streak}
