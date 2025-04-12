@@ -7,6 +7,7 @@ interface FinishedProps {
   maxStreak: number
   onPlayAgain: () => void
   onShare: () => void
+  onClose: () => void
   categoryStats: {
     totalPlays: number
     totalScore: number
@@ -20,6 +21,7 @@ export function Finished({
   maxStreak,
   onPlayAgain,
   onShare,
+  onClose,
   categoryStats
 }: FinishedProps) {
   const [isShared, setIsShared] = useState(false)
@@ -60,8 +62,15 @@ export function Finished({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-xl flex flex-col items-center gap-8 mt-12 bg-white p-8 rounded-xl"
+      className="w-full max-w-xl flex flex-col items-center gap-8 mt-12 bg-white p-8 rounded-xl relative"
     >
+      {/* Close Button */}
+      <button 
+        onClick={onClose}
+        className="absolute pb-1.5 top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+      >
+        <span className="text-2xl font-bold">&times;</span>
+      </button>
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

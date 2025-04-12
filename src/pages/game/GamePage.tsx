@@ -104,7 +104,7 @@ export function GamePage() {
           // Wait for exit animations to complete before showing results
           setTimeout(() => {
             setShowResults(true)
-          }, 1200) // Slightly longer than exit animation duration
+          }, 0) // Slightly longer than exit animation duration
         }
 
         return {
@@ -148,7 +148,7 @@ export function GamePage() {
           // Wait for exit animations to complete before showing results
           setTimeout(() => {
             setShowResults(true)
-          }, 1200) // Slightly longer than exit animation duration
+          }, 0) // Slightly longer than exit animation duration
         }
 
         return {
@@ -214,16 +214,15 @@ export function GamePage() {
   }, [gameState.guesses, gameState.currentCategory])
 
   const handleRefreshCategory = useCallback(() => {
-    if (!gameState.isGameOver) {
-      const category = getRandomCategory()
-      setGameState({
-        guesses: [],
-        remainingGuesses: 4,
-        isGameOver: false,
-        currentCategory: category
-      })
-    }
-  }, [gameState.isGameOver, getRandomCategory])
+    const category = getRandomCategory()
+    setGameState({
+      guesses: [],
+      remainingGuesses: 4,
+      isGameOver: false,
+      currentCategory: category
+    })
+    setShowResults(false)
+  }, [getRandomCategory])
 
   const showInstructions = gameState.guesses.length === 0
 
@@ -234,25 +233,6 @@ export function GamePage() {
       {/* Main content wrapper with background */}
       <div className="relative z-10 w-full flex flex-col items-center max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
-          {gameState.isGameOver && showResults && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="w-full flex justify-center items-center"
-            >
-              <div className="w-full max-w-2xl flex justify-center items-center">
-                <Finished 
-                  score={calculateScore(gameState.guesses)}
-                  streak={streak}
-                  maxStreak={maxStreak}
-                  categoryStats={categoryStats}
-                  onPlayAgain={handlePlayAgain}
-                  onShare={handleShare}
-                />
-              </div>
-            </motion.div>
-          )}
           {!showResults && (
             <motion.div
               initial={{ opacity: 1 }}
@@ -283,7 +263,6 @@ export function GamePage() {
                 >
                   <motion.button 
                     onClick={handleRefreshCategory}
-                    disabled={gameState.isGameOver}
                     className="cursor-pointer"
                     whileHover={{ 
                       scale: 1.01,
@@ -304,13 +283,28 @@ export function GamePage() {
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.4 }}
                   className="bg-white/100"
                 >
-                  <GuessInput 
-                    onSubmit={handleGuess}
-                    disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
-                  />
+                  {gameState.isGameOver ? (
+                    <motion.button 
+                      initial={{ y: 0, opacity: 1 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      whileHover={{ y: -10 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => setShowResults(true)}
+                      className="w-full h-24 px-8 text-2xl md:text-3xl font-bold border-3 border-black rounded-2xl outline-none 
+                                placeholder:text-gray-400 font-tech-mono text-center placeholder:italic cursor-pointer transition-colors"
+                    >
+                      SEE RESULTS
+                    </motion.button>
+                  ) : (
+                    <GuessInput 
+                      onSubmit={handleGuess}
+                      disabled={gameState.isGameOver || gameState.remainingGuesses === 0}
+                    />
+                  )}
                 </motion.div>
               </div>
-
+              
               {showInstructions ? (
                 <Instructions category={gameState.currentCategory} />
               ) : (
@@ -371,8 +365,32 @@ export function GamePage() {
           )}
         </AnimatePresence>
 
-        <Footer className="mt-auto py-8 bg-white/100 backdrop-blur-sm w-full" />
+        {/* Results Overlay */}
+        <AnimatePresence mode="wait">
+          {showResults && (
+            <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 1 }}
+             className="w-full flex justify-center items-center"
+           >
+             <div className="w-full max-w-2xl flex justify-center items-center">
+             <Finished
+                score={calculateScore(gameState.guesses)}
+                streak={streak}
+                maxStreak={maxStreak}
+                onPlayAgain={handlePlayAgain}
+                onShare={handleShare}
+                onClose={() => setShowResults(false)}
+                categoryStats={categoryStats}
+              />
+             </div>
+           </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+      
+      <Footer className="mt-auto py-8 bg-white/100 backdrop-blur-sm w-full" />
     </div>
   )
 } 
