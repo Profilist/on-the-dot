@@ -89,7 +89,7 @@ export function GamePage() {
         item: guess,
         originalTitle: result.title,
         rank: result.rank,
-        isInTop100: true,
+        isInTop100: result.isMatch,
         guessCount: currentCount + 1,
         aliases: result.aliases
       }
@@ -104,7 +104,7 @@ export function GamePage() {
           // Wait for exit animations to complete before showing results
           setTimeout(() => {
             setShowResults(true)
-          }, 0) // Slightly longer than exit animation duration
+          }, 500) // Slightly longer than exit animation duration
         }
 
         return {
@@ -148,7 +148,7 @@ export function GamePage() {
           // Wait for exit animations to complete before showing results
           setTimeout(() => {
             setShowResults(true)
-          }, 0) // Slightly longer than exit animation duration
+          }, 500) // Slightly longer than exit animation duration
         }
 
         return {
