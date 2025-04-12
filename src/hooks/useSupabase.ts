@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
 import { supabase, isSupabaseError } from '../lib/supabase'
-import { normalizeTitle } from '../utils/titleMatcher'
+import { isTitleMatch } from '../utils/titleMatcher'
 import { useGuessStats } from '../hooks/useGuessStats'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY = 1000 // 1 second
-const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'espn athletes', 'most popular boy names', 'most popular girl names', 'companies by market cap', 'most common words', 'video games', 'most streamed artists', 'universities', 'most popular anime'] as const 
+const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'espn athletes', 'most popular boy names', 'most popular girl names', 'companies by market cap', 'most common words', 'video games', 'most streamed artists', 'universities', 'most popular anime', 'most populated cities'] as const 
 // const AVAILABLE_CATEGORIES = ['most popular girl names'] as const 
 
 export type Category = typeof AVAILABLE_CATEGORIES[number]
@@ -37,7 +37,8 @@ export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
   'video games': 'video games',
   'most streamed artists': 'artists',
   'universities': 'universities',
-  'most popular anime': 'anime'
+  'most popular anime': 'anime',
+  'most populated cities': 'cities'
 }
 
 export function useSupabase() {
@@ -68,16 +69,14 @@ export function useSupabase() {
 
       if (!data) return { rank: 0, title: title, aliases: [], isMatch: false, guessCount: 0 }
 
-      const normalizedGuess = normalizeTitle(title)
-      
       // First check for exact title matches
       const exactMatches = data.filter((item: DbItem) => 
-        normalizeTitle(item.title) === normalizedGuess
+        isTitleMatch(title, item.title)
       )
 
       // Then check aliases only if no exact matches found
       const matches = exactMatches.length > 0 ? exactMatches : data.filter((item: DbItem) => 
-        item.aliases.some(alias => normalizeTitle(alias) === normalizedGuess)
+        item.aliases.some(alias => isTitleMatch(title, alias))
       )
 
       if (matches.length === 0) {
@@ -87,7 +86,7 @@ export function useSupabase() {
       // Filter out previously guessed titles
       const unguessedMatches = matches.filter(match =>
         !previousGuesses.some(prevGuess => 
-          normalizeTitle(match.title) === normalizeTitle(prevGuess)
+          isTitleMatch(match.title, prevGuess)
         )
       )
 

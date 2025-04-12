@@ -26,3 +26,5 @@ dist-ssr
 .venv
 .env
 .cursor
+
+REPOSITORY_DESCRIPTION.txt

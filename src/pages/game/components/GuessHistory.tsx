@@ -45,7 +45,7 @@ export function GuessHistory({ guesses }: GuessHistoryProps) {
             >
 
               <div className="w-10 ml-6 flex items-center">
-                {guess.rank && isTopRank(guess.rank) && (
+                {guess.rank && (isTopRank(guess.rank)) && (
                   <motion.div 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
