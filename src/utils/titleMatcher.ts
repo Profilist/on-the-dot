@@ -8,7 +8,7 @@ export function normalizeTitle(title: string): string {
 export function isTitleMatch(
   guess: string,
   dbTitle: string,
-  maxDistance: number = 2
+  maxDistance: number = 1
 ): boolean {
   const normalizedGuess = normalizeTitle(guess);
   const normalizedTitle = normalizeTitle(dbTitle);
