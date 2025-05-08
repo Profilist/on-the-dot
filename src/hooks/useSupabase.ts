@@ -38,7 +38,8 @@ export const CATEGORY_DISPLAY_NAMES: Record<Category, string> = {
   'most streamed artists': 'artists',
   'universities': 'universities',
   'most popular anime': 'anime',
-  'most populated cities': 'cities'
+  'most populated cities': 'cities',
+  'largest subreddits': 'subreddits'
 }
 
 export function useSupabase() {
