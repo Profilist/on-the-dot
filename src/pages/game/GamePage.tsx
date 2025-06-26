@@ -44,6 +44,7 @@ export function GamePage() {
   })
   const [showResults, setShowResults] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
+  const [hasSeenFinished, setHasSeenFinished] = useState(false)
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
 
@@ -180,6 +181,7 @@ export function GamePage() {
       currentCategory: category
     })
     setShowResults(false)
+    setHasSeenFinished(false)
   }, [getRandomCategory])
 
   const handleShare = useCallback(() => {
@@ -283,7 +285,7 @@ export function GamePage() {
                   transition={{ duration: 0.6, delay: isExiting ? 0 : 0.4 }}
                   className="bg-white/100"
                 >
-                  {gameState.isGameOver ? (
+                  {gameState.isGameOver && hasSeenFinished ? (
                     <motion.button 
                       initial={{ y: 0, opacity: 1 }}
                       animate={{ y: 0, opacity: 1 }}
@@ -381,7 +383,12 @@ export function GamePage() {
                 maxStreak={maxStreak}
                 onPlayAgain={handlePlayAgain}
                 onShare={handleShare}
-                onClose={() => setShowResults(false)}
+                onClose={() => {
+                  setShowResults(false)
+                  if (!hasSeenFinished) {
+                    setHasSeenFinished(true)
+                  }
+                }}
                 categoryStats={categoryStats}
               />
              </div>
