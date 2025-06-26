@@ -25,7 +25,6 @@ export function useUserStats(userId: string | null) {
 
     setIsLoading(true)
     
-    // Load user stats
     const { data: userStats, error: userError } = await supabase
       .from('user_stats')
       .select('*')

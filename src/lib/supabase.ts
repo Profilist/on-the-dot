@@ -8,13 +8,12 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Create typed client
 export const supabase = createClient<Database>(
   supabaseUrl,
   supabaseKey,
   {
     auth: {
-      persistSession: false // Since we don't need auth for this game
+      persistSession: false
     },
     global: {
       headers: {
@@ -24,7 +23,6 @@ export const supabase = createClient<Database>(
   }
 )
 
-// Type-safe helper for checking if an error is a Supabase error
 export function isSupabaseError(error: unknown): error is { message: string; details: string; hint: string; code: string } {
   return typeof error === 'object' && error !== null && 'message' in error && 'code' in error
 }
