@@ -4,9 +4,8 @@ import { isTitleMatch } from '../utils/titleMatcher'
 import { useGuessStats } from '../hooks/useGuessStats'
 
 const MAX_RETRIES = 2
-const RETRY_DELAY = 1000 // 1 second
+const RETRY_DELAY = 1000
 const AVAILABLE_CATEGORIES = ['grossing movies', 'most streamed songs', 'most followed instagram accounts', 'most visited countries', 'espn athletes', 'most popular boy names', 'most popular girl names', 'companies by market cap', 'most common words', 'video games', 'most streamed artists', 'universities', 'most popular anime', 'most populated cities', 'largest subreddits'] as const 
-// const AVAILABLE_CATEGORIES = ['most popular girl names'] as const 
 
 export type Category = typeof AVAILABLE_CATEGORIES[number]
 
